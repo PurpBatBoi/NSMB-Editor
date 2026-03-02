@@ -41,7 +41,12 @@
             this.decompressOverlayButton = new System.Windows.Forms.Button();
             this.panel1 = new System.Windows.Forms.Panel();
             this.extractDirectoryDialog = new System.Windows.Forms.FolderBrowserDialog();
+            this.searchPanel = new System.Windows.Forms.Panel();
+            this.clearSearchButton = new System.Windows.Forms.Button();
+            this.searchTextBox = new System.Windows.Forms.TextBox();
+            this.searchLabel = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
+            this.searchPanel.SuspendLayout();
             this.SuspendLayout();
             // 
             // selectionInfo
@@ -168,17 +173,65 @@
             this.panel1.Size = new System.Drawing.Size(679, 100);
             this.panel1.TabIndex = 15;
             // 
+            // searchPanel
+            // 
+            this.searchPanel.Controls.Add(this.clearSearchButton);
+            this.searchPanel.Controls.Add(this.searchTextBox);
+            this.searchPanel.Controls.Add(this.searchLabel);
+            this.searchPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.searchPanel.Location = new System.Drawing.Point(0, 0);
+            this.searchPanel.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.searchPanel.Name = "searchPanel";
+            this.searchPanel.Size = new System.Drawing.Size(679, 32);
+            this.searchPanel.TabIndex = 16;
+            // 
+            // clearSearchButton
+            // 
+            this.clearSearchButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.clearSearchButton.Location = new System.Drawing.Point(619, 4);
+            this.clearSearchButton.Margin = new System.Windows.Forms.Padding(4);
+            this.clearSearchButton.Name = "clearSearchButton";
+            this.clearSearchButton.Size = new System.Drawing.Size(56, 24);
+            this.clearSearchButton.TabIndex = 2;
+            this.clearSearchButton.Text = "<clearSearchButton>";
+            this.clearSearchButton.UseVisualStyleBackColor = true;
+            this.clearSearchButton.Click += new System.EventHandler(this.clearSearchButton_Click);
+            // 
+            // searchTextBox
+            // 
+            this.searchTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.searchTextBox.Location = new System.Drawing.Point(66, 4);
+            this.searchTextBox.Margin = new System.Windows.Forms.Padding(4);
+            this.searchTextBox.Name = "searchTextBox";
+            this.searchTextBox.Size = new System.Drawing.Size(545, 22);
+            this.searchTextBox.TabIndex = 1;
+            this.searchTextBox.TextChanged += new System.EventHandler(this.searchTextBox_TextChanged);
+            // 
+            // searchLabel
+            // 
+            this.searchLabel.AutoSize = true;
+            this.searchLabel.Location = new System.Drawing.Point(4, 8);
+            this.searchLabel.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.searchLabel.Name = "searchLabel";
+            this.searchLabel.Size = new System.Drawing.Size(63, 17);
+            this.searchLabel.TabIndex = 0;
+            this.searchLabel.Text = "<search>";
+            // 
             // FilesystemBrowser
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.fileTreeView);
+            this.Controls.Add(this.searchPanel);
             this.Controls.Add(this.panel1);
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "FilesystemBrowser";
             this.Size = new System.Drawing.Size(679, 388);
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
+            this.searchPanel.ResumeLayout(false);
+            this.searchPanel.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -198,5 +251,9 @@
         private System.Windows.Forms.Button decompressOverlayButton;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.FolderBrowserDialog extractDirectoryDialog;
+        private System.Windows.Forms.Panel searchPanel;
+        private System.Windows.Forms.Button clearSearchButton;
+        private System.Windows.Forms.TextBox searchTextBox;
+        private System.Windows.Forms.Label searchLabel;
     }
 }

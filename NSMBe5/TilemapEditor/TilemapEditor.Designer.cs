@@ -44,6 +44,10 @@
             this.redoButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.gridButton = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.zoomOutButton = new System.Windows.Forms.ToolStripButton();
+            this.zoomActualSizeButton = new System.Windows.Forms.ToolStripButton();
+            this.zoomInButton = new System.Windows.Forms.ToolStripButton();
             this.tilePicker1 = new NSMBe5.TilePicker();
             this.tilemapEditorControl1 = new NSMBe5.TilemapEditorControl();
             this.panel1.SuspendLayout();
@@ -87,7 +91,11 @@
             this.undoButton,
             this.redoButton,
             this.toolStripSeparator3,
-            this.gridButton});
+            this.gridButton,
+            this.toolStripSeparator4,
+            this.zoomOutButton,
+            this.zoomActualSizeButton,
+            this.zoomInButton});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(564, 25);
@@ -219,6 +227,43 @@
             this.gridButton.Text = "<Show Grid>";
             this.gridButton.CheckStateChanged += new System.EventHandler(this.gridButton_CheckStateChanged);
             // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 25);
+            // 
+            // zoomOutButton
+            // 
+            this.zoomOutButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.zoomOutButton.Enabled = false;
+            this.zoomOutButton.Image = global::NSMBe5.Properties.Resources.zoomout;
+            this.zoomOutButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.zoomOutButton.Name = "zoomOutButton";
+            this.zoomOutButton.Size = new System.Drawing.Size(23, 22);
+            this.zoomOutButton.Text = "<Zoom Out>";
+            this.zoomOutButton.Click += new System.EventHandler(this.zoomOutButton_Click);
+            // 
+            // zoomActualSizeButton
+            // 
+            this.zoomActualSizeButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.zoomActualSizeButton.Enabled = false;
+            this.zoomActualSizeButton.Image = global::NSMBe5.Properties.Resources.zoomactual;
+            this.zoomActualSizeButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.zoomActualSizeButton.Name = "zoomActualSizeButton";
+            this.zoomActualSizeButton.Size = new System.Drawing.Size(23, 22);
+            this.zoomActualSizeButton.Text = "<Zoom 100%>";
+            this.zoomActualSizeButton.Click += new System.EventHandler(this.zoomActualSizeButton_Click);
+            // 
+            // zoomInButton
+            // 
+            this.zoomInButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.zoomInButton.Image = global::NSMBe5.Properties.Resources.zoom;
+            this.zoomInButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.zoomInButton.Name = "zoomInButton";
+            this.zoomInButton.Size = new System.Drawing.Size(23, 22);
+            this.zoomInButton.Text = "<Zoom In>";
+            this.zoomInButton.Click += new System.EventHandler(this.zoomInButton_Click);
+            // 
             // tilePicker1
             // 
             this.tilePicker1.AutoSize = true;
@@ -277,5 +322,9 @@
         private System.Windows.Forms.ToolStripButton redoButton;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
         private System.Windows.Forms.ToolStripButton gridButton;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripButton zoomOutButton;
+        private System.Windows.Forms.ToolStripButton zoomActualSizeButton;
+        private System.Windows.Forms.ToolStripButton zoomInButton;
     }
 }

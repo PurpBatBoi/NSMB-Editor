@@ -27,9 +27,13 @@ namespace NSMBe5
 {
     public partial class TilemapEditorControl : UserControl
     {
+        private const int BaseTileSize = 8;
+        private const int MinZoom = 1;
+        private const int MaxZoom = 8;
 
         public delegate void TileSelectedd(int tile, bool second);
         public event TileSelectedd TileSelected;
+        public event EventHandler ZoomChanged;
 
         int hovertx = -1;
         int hoverty = -1;
@@ -45,6 +49,7 @@ namespace NSMBe5
         public Tilemap t;
         public int bufferWidth, bufferHeight;
         public int tileSize;
+        public int zoomLevel = 1;
         public TilePicker picker;
         public TilemapEditor.TilemapEditor ed;
 
@@ -78,14 +83,60 @@ namespace NSMBe5
             this.t = t;
             t.render();
 
-            this.tileSize = 8;
+            this.zoomLevel = 1;
+            this.tileSize = BaseTileSize;
             this.bufferHeight = t.height;
             this.bufferWidth = t.width;
 
-            this.Size = this.MinimumSize = new Size(bufferWidth * tileSize, bufferHeight * tileSize);
+            this.Size = new Size(bufferWidth * tileSize, bufferHeight * tileSize);
 
             undobutton.Click += new EventHandler(Undo);
             redobutton.Click += new EventHandler(Redo);
+        }
+
+        public bool CanZoomIn
+        {
+            get { return zoomLevel < MaxZoom; }
+        }
+
+        public bool CanZoomOut
+        {
+            get { return zoomLevel > MinZoom; }
+        }
+
+        public bool IsActualZoom
+        {
+            get { return zoomLevel == 1; }
+        }
+
+        public void ZoomIn()
+        {
+            SetZoom(zoomLevel + 1);
+        }
+
+        public void ZoomOut()
+        {
+            SetZoom(zoomLevel - 1);
+        }
+
+        public void ZoomActualSize()
+        {
+            SetZoom(1);
+        }
+
+        public void SetZoom(int newZoom)
+        {
+            int clamped = Math.Max(MinZoom, Math.Min(MaxZoom, newZoom));
+            if (clamped == zoomLevel)
+                return;
+
+            zoomLevel = clamped;
+            tileSize = BaseTileSize * zoomLevel;
+            this.Size = new Size(bufferWidth * tileSize, bufferHeight * tileSize);
+            pictureBox1.Invalidate(true);
+
+            if (ZoomChanged != null)
+                ZoomChanged(this, EventArgs.Empty);
         }
 
         int defaultWidth = 1;
@@ -116,13 +167,16 @@ namespace NSMBe5
             e.Graphics.FillRectangle(Brushes.DarkSlateGray,
                 0, 0, bufferWidth * tileSize, bufferHeight * tileSize);
 
-            e.Graphics.DrawImage(t.buffer, 0, 0);
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+            e.Graphics.DrawImage(t.buffer, 0, 0, bufferWidth * tileSize, bufferHeight * tileSize);
 
             if (showGrid)
             {
-                for (int x = 16; x < Width; x += 16)
+                int gridStep = tileSize * 2;
+                for (int x = gridStep; x < Width; x += gridStep)
                     e.Graphics.DrawLine(Pens.Gray, x, 0, x, Height);
-                for (int y = 16; y < Height; y += 16)
+                for (int y = gridStep; y < Height; y += gridStep)
                     e.Graphics.DrawLine(Pens.Gray, 0, y, Width, y);
             }
 
@@ -319,6 +373,28 @@ namespace NSMBe5
             hovertx = -1;
             hoverty = -1;
             pictureBox1.Invalidate(true);
+        }
+
+        private void HandleZoomMouseWheel(MouseEventArgs e)
+        {
+            if ((ModifierKeys & Keys.Control) == Keys.Control)
+            {
+                if (e.Delta > 0)
+                    ZoomIn();
+                else if (e.Delta < 0)
+                    ZoomOut();
+            }
+        }
+
+        private void pictureBox1_MouseWheel(object sender, MouseEventArgs e)
+        {
+            HandleZoomMouseWheel(e);
+        }
+
+        protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            HandleZoomMouseWheel(e);
+            base.OnMouseWheel(e);
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

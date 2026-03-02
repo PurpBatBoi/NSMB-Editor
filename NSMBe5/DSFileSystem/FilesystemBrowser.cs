@@ -96,21 +96,82 @@ namespace NSMBe5.DSFileSystem
             extractFileDialog.Filter = LanguageManager.Get("Filters", "all");
             replaceFileDialog.Filter = LanguageManager.Get("Filters", "all");
 
+            RefreshTreeFromSearch();
+        }
+
+        private void clearSearchButton_Click(object sender, EventArgs e)
+        {
+            searchTextBox.Clear();
+            fileTreeView.Focus();
+        }
+
+        private void searchTextBox_TextChanged(object sender, EventArgs e)
+        {
+            RefreshTreeFromSearch();
+        }
+
+        private void RefreshTreeFromSearch()
+        {
             fileTreeView.Nodes.Clear();
 
             if (fs == null)
             {
+                UpdateFileInfo();
                 return;
             }
 
-            TreeNode main = new TreeNode(fs.mainDir.name, 0, 0);
-            main.Tag = fs.mainDir;
+            string query = searchTextBox.Text.Trim();
 
-            loadDir(main, fs.mainDir);
+            if (query.Length == 0)
+            {
+                TreeNode main = new TreeNode(fs.mainDir.name, 0, 0);
+                main.Tag = fs.mainDir;
+                loadDir(main, fs.mainDir);
+                fileTreeView.Nodes.Add(main);
+                main.Expand();
+                UpdateFileInfo();
+                return;
+            }
 
-            fileTreeView.Nodes.Clear();
-            fileTreeView.Nodes.Add(main);
-            main.Expand();
+            TreeNode filteredMain = loadDirFiltered(fs.mainDir, query);
+            if (filteredMain != null)
+            {
+                fileTreeView.Nodes.Add(filteredMain);
+                filteredMain.ExpandAll();
+            }
+
+            UpdateFileInfo();
+        }
+
+        private TreeNode loadDirFiltered(Directory dir, string query)
+        {
+            TreeNode dirNode = new TreeNode(dir.name, 0, 0);
+            dirNode.Tag = dir;
+
+            bool dirMatches = dir.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+
+            foreach (File f in dir.childrenFiles)
+            {
+                if (f.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
+
+                int ic = getIconForFile(f);
+                TreeNode fileNode = new TreeNode(f.name, ic, ic);
+                fileNode.Tag = f;
+                dirNode.Nodes.Add(fileNode);
+            }
+
+            foreach (Directory subDir in dir.childrenDirs)
+            {
+                TreeNode childNode = loadDirFiltered(subDir, query);
+                if (childNode != null)
+                    dirNode.Nodes.Add(childNode);
+            }
+
+            if (dirMatches || dirNode.Nodes.Count > 0)
+                return dirNode;
+
+            return null;
         }
 
         private string getFileTypeForFile(File f)

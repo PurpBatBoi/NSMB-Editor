@@ -27,6 +27,8 @@ namespace NSMBe5
 {
     public partial class TilePicker : UserControl
     {
+        private const int MinZoom = 1;
+        private const int MaxZoom = 8;
 
         public delegate void TileSelectedd(int selTileNum, int selTilePal, int selTileWidth, int selTileHeight);
         public event TileSelectedd TileSelected;
@@ -47,6 +49,8 @@ namespace NSMBe5
         public int bufferWidth, bufferHeight;
         public int bufferCount;
         public int tileSize;
+        private int baseTileSize;
+        private int zoomLevel = 1;
 
         public bool allowsRectangle = true;
         public bool allowNoTile = true;
@@ -61,12 +65,31 @@ namespace NSMBe5
         {
             this.buffers = buffers;
             this.bufferCount = buffers.Length;
+            this.baseTileSize = tileSize;
 
-            this.tileSize = tileSize;
-            this.bufferHeight = buffers[0].Height / tileSize;
-            this.bufferWidth = buffers[0].Width / tileSize;
-            
-            pictureBox1.Size = pictureBox1.MinimumSize = new Size(bufferWidth * tileSize, bufferHeight * bufferCount * tileSize);
+            this.bufferHeight = buffers[0].Height / baseTileSize;
+            this.bufferWidth = buffers[0].Width / baseTileSize;
+            ApplyZoom();
+        }
+
+        public void SetZoom(int zoom)
+        {
+            int clamped = Math.Max(MinZoom, Math.Min(MaxZoom, zoom));
+            if (clamped == zoomLevel)
+                return;
+
+            zoomLevel = clamped;
+            ApplyZoom();
+        }
+
+        private void ApplyZoom()
+        {
+            tileSize = baseTileSize * zoomLevel;
+            if (buffers == null)
+                return;
+
+            pictureBox1.Size = new Size(bufferWidth * tileSize, bufferHeight * bufferCount * tileSize);
+            pictureBox1.Invalidate(true);
         }
 
         public void SetTileset(NSMBTileset t)
@@ -81,8 +104,10 @@ namespace NSMBe5
             e.Graphics.FillRectangle(Brushes.DarkSlateGray,
                 0, 0, bufferWidth * tileSize, bufferHeight * tileSize * bufferCount);
 
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
             for (int i = 0; i < bufferCount; i++)
-                e.Graphics.DrawImage(buffers[i], 0, i * bufferHeight * tileSize);
+                e.Graphics.DrawImage(buffers[i], 0, i * bufferHeight * tileSize, bufferWidth * tileSize, bufferHeight * tileSize);
 
             e.Graphics.DrawRectangle(Pens.White,
                 (selTileNum % bufferWidth) * tileSize, (selTileNum / bufferWidth + selTilePal * bufferHeight) * tileSize,

@@ -36,24 +36,29 @@ namespace NSMBe5.TilemapEditor
             InitializeComponent();
             LanguageManager.ApplyToContainer(this, "TilemapEditor");
             buttons = new ToolStripButton[] { drawToolButton, xFlipToolButton, yFlipToolButton, copyToolButton, pasteToolButton, changePalToolButton };
+            tilemapEditorControl1.ZoomChanged += tilemapEditorControl1_ZoomChanged;
+            UpdateZoomButtons();
         }
 
         public void load(Tilemap t)
         {
             this.t = t;
             if (t.buffers == null) t.render();
-            panel1.Width = t.width * 8 + 30;
             tilePicker1.init(t.buffers, 8);
             tilemapEditorControl1.picker = tilePicker1;
             tilemapEditorControl1.undobutton = undoButton;
             tilemapEditorControl1.redobutton = redoButton;
             tilemapEditorControl1.ed = this;
             tilemapEditorControl1.load(t);
+            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            RefreshCanvasPanelWidth();
+            UpdateZoomButtons();
         }
 
         public void reload()
         {
             tilePicker1.init(t.buffers, 8);
+            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
         }
 
         public void setMode(TilemapEditorControl.EditionMode mode)
@@ -127,6 +132,43 @@ namespace NSMBe5.TilemapEditor
         {
             tilemapEditorControl1.showGrid = gridButton.Checked;
             tilemapEditorControl1.Invalidate(true);
+        }
+
+        private void zoomInButton_Click(object sender, EventArgs e)
+        {
+            tilemapEditorControl1.ZoomIn();
+            UpdateZoomButtons();
+        }
+
+        private void zoomActualSizeButton_Click(object sender, EventArgs e)
+        {
+            tilemapEditorControl1.ZoomActualSize();
+            UpdateZoomButtons();
+        }
+
+        private void zoomOutButton_Click(object sender, EventArgs e)
+        {
+            tilemapEditorControl1.ZoomOut();
+            UpdateZoomButtons();
+        }
+
+        private void tilemapEditorControl1_ZoomChanged(object sender, EventArgs e)
+        {
+            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            RefreshCanvasPanelWidth();
+            UpdateZoomButtons();
+        }
+
+        private void UpdateZoomButtons()
+        {
+            zoomInButton.Enabled = tilemapEditorControl1.CanZoomIn;
+            zoomOutButton.Enabled = tilemapEditorControl1.CanZoomOut;
+            zoomActualSizeButton.Enabled = !tilemapEditorControl1.IsActualZoom;
+        }
+
+        private void RefreshCanvasPanelWidth()
+        {
+            panel1.Width = tilemapEditorControl1.Width + 30;
         }
     }
 }
