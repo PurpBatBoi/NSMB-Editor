@@ -56,6 +56,66 @@ A feature-rich editor for **New Super Mario Bros. (Nintendo DS)** ROM hacking.
 - First build may take longer due to NuGet restore.
 - If Mono prints `Gtk not found ... using built-in colorscheme`, the editor still works and falls back to built-in theming.
 
+## Easy Sharing Packages
+Use the scripts in `scripts/` to generate distributable artifacts in `dist/`.
+
+### 1) Windows ZIP Package
+Build and package:
+
+```bash
+./scripts/build-windows-zip.sh
+```
+
+Output:
+- `dist/NSMBe5-windows-anycpu.zip`
+
+Recommended release note for users:
+- Extract the ZIP and run `NSMBe5.exe` on Windows.
+
+### 2) Linux AppImage Package
+Build and package:
+
+```bash
+./scripts/build-linux-appimage.sh
+```
+
+Output:
+- `dist/NSMBe5-linux-x86_64.AppImage`
+
+Requirements for packaging:
+- `msbuild` (Mono build tools)
+- `appimagetool`
+
+Runtime note:
+- The generated AppImage currently uses system `mono` by default.
+- If `mono` is not installed on the target machine, the AppImage will show an error and exit.
+
+To bundle Mono in the AppImage (easier sharing):
+
+```bash
+./scripts/build-linux-appimage.sh --bundle-mono
+```
+
+Output:
+- `dist/NSMBe5-linux-x86_64-bundled-mono.AppImage`
+
+Bundled mode note:
+- This file is larger, but users usually do not need system Mono installed.
+
+### 3) Build Everything At Once
+Generate both Linux AppImages and the Windows AnyCPU ZIP:
+
+```bash
+./scripts/build-all-packages.sh
+```
+
+Run:
+
+```bash
+chmod +x dist/NSMBe5-linux-x86_64.AppImage
+./dist/NSMBe5-linux-x86_64.AppImage
+```
+
 ## Screenshots
 <p align="left">
   <img src="https://raw.githubusercontent.com/MammaMiaTeam/NSMB-Editor/master/screenshots/filebrowser.png" width="385" title="File Browser">

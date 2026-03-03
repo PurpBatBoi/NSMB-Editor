@@ -3,3 +3,7 @@ NSMBe5/bin/
 NSMBe5/obj/
 packages/
 
+# Build/release artifacts
+dist/
+*.AppImage
+*.zip

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+APP_BIN="$HERE/usr/bin"
+
+# Keep execution inside the bundle so relative resource loading is stable.
+cd "$APP_BIN"
+
+if [[ -x "$APP_BIN/mono" ]]; then
+  export MONO_GAC_PREFIX="$HERE/usr"
+  export MONO_CFG_DIR="$HERE/usr/etc"
+  export LD_LIBRARY_PATH="$HERE/usr/lib:${LD_LIBRARY_PATH:-}"
+  exec "$APP_BIN/mono" "$APP_BIN/NSMBe5.exe" "$@"
+fi
+
+if command -v mono >/dev/null 2>&1; then
+  exec mono "$APP_BIN/NSMBe5.exe" "$@"
+fi
+
+echo "Mono runtime not found. Install mono-complete (or bundle mono into this AppImage)." >&2
+exit 1

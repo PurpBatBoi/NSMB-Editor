@@ -30,6 +30,7 @@
         {
             this.panel1 = new System.Windows.Forms.Panel();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.map16Splitter = new System.Windows.Forms.Splitter();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.saveButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -61,6 +62,7 @@
             this.panel1.Controls.Add(this.tilemapEditorControl1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel1.Location = new System.Drawing.Point(0, 25);
+            this.panel1.MinimumSize = new System.Drawing.Size(256, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(280, 373);
             this.panel1.TabIndex = 2;
@@ -71,10 +73,21 @@
             this.panel2.AutoSize = true;
             this.panel2.Controls.Add(this.tilePicker1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(280, 25);
+            this.panel2.Location = new System.Drawing.Point(285, 25);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(284, 373);
+            this.panel2.Size = new System.Drawing.Size(279, 373);
             this.panel2.TabIndex = 3;
+            // 
+            // map16Splitter
+            // 
+            this.map16Splitter.Dock = System.Windows.Forms.DockStyle.Left;
+            this.map16Splitter.Location = new System.Drawing.Point(280, 25);
+            this.map16Splitter.MinExtra = 256;
+            this.map16Splitter.MinSize = 256;
+            this.map16Splitter.Name = "map16Splitter";
+            this.map16Splitter.Size = new System.Drawing.Size(5, 373);
+            this.map16Splitter.TabIndex = 4;
+            this.map16Splitter.TabStop = false;
             // 
             // toolStrip1
             // 
@@ -287,6 +300,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.panel2);
+            this.Controls.Add(this.map16Splitter);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.toolStrip1);
             this.Name = "TilemapEditor";
@@ -308,6 +322,7 @@
         private TilemapEditorControl tilemapEditorControl1;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Splitter map16Splitter;
         private System.Windows.Forms.ToolStrip toolStrip1;
         private System.Windows.Forms.ToolStripButton drawToolButton;
         private System.Windows.Forms.ToolStripButton xFlipToolButton;

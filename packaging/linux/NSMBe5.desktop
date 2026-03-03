@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=NSMB Editor
+Comment=NSMBe5 for New Super Mario Bros. DS ROM editing
+Exec=NSMBe5
+Icon=nsmbe
+Categories=Utility;
+Terminal=false
+StartupNotify=true
