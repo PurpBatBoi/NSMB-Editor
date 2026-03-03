@@ -112,8 +112,8 @@ if [[ -z "$MSBUILD_CMD" ]]; then
 fi
 
 echo "==> Restoring/building $APP_NAME ($BUILD_CONF, $MSBUILD_PLATFORM)"
-"$MSBUILD_CMD" "$ROOT_DIR/NSMBe5.sln" /t:Restore
-"$MSBUILD_CMD" "$ROOT_DIR/NSMBe5.sln" /p:Configuration="$BUILD_CONF" /p:Platform="$MSBUILD_PLATFORM"
+"$MSBUILD_CMD" "$ROOT_DIR/NSMBe5.sln" -t:Restore
+"$MSBUILD_CMD" "$ROOT_DIR/NSMBe5.sln" -p:Configuration="$BUILD_CONF" -p:Platform="$MSBUILD_PLATFORM"
 
 if [[ ! -f "$PUBLISH_DIR/$APP_NAME.exe" ]]; then
   echo "Build output not found: $PUBLISH_DIR/$APP_NAME.exe" >&2
