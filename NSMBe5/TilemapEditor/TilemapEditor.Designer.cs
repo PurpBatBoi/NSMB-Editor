@@ -70,7 +70,6 @@
             // panel2
             // 
             this.panel2.AutoScroll = true;
-            this.panel2.AutoSize = true;
             this.panel2.Controls.Add(this.tilePicker1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel2.Location = new System.Drawing.Point(285, 25);
@@ -279,11 +278,13 @@
             // 
             // tilePicker1
             // 
-            this.tilePicker1.AutoSize = true;
+            this.tilePicker1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tilePicker1.Location = new System.Drawing.Point(3, 3);
             this.tilePicker1.MinimumSize = new System.Drawing.Size(256, 224);
             this.tilePicker1.Name = "tilePicker1";
-            this.tilePicker1.Size = new System.Drawing.Size(278, 265);
+            this.tilePicker1.Size = new System.Drawing.Size(273, 367);
             this.tilePicker1.TabIndex = 0;
             // 
             // tilemapEditorControl1
