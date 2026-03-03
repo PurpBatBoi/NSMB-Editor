@@ -76,13 +76,12 @@
             // 
             // subTypeComboBox
             // 
-            this.subTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.subTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.subTypeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.subTypeComboBox.FormattingEnabled = true;
             this.subTypeComboBox.Location = new System.Drawing.Point(164, 18);
             this.subTypeComboBox.Name = "subTypeComboBox";
-            this.subTypeComboBox.Size = new System.Drawing.Size(242, 21);
+            this.subTypeComboBox.Size = new System.Drawing.Size(360, 21);
             this.subTypeComboBox.TabIndex = 3;
             this.subTypeComboBox.SelectedIndexChanged += new System.EventHandler(this.subTypeComboBox_SelectedIndexChanged);
             // 
@@ -97,22 +96,20 @@
             // 
             // paramsListBox
             // 
-            this.paramsListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.paramsListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.paramsListBox.FormattingEnabled = true;
             this.paramsListBox.Location = new System.Drawing.Point(164, 69);
             this.paramsListBox.Name = "paramsListBox";
-            this.paramsListBox.Size = new System.Drawing.Size(242, 238);
+            this.paramsListBox.Size = new System.Drawing.Size(360, 238);
             this.paramsListBox.TabIndex = 5;
             this.paramsListBox.Visible = false;
             this.paramsListBox.SelectedIndexChanged += new System.EventHandler(this.paramsListBox_SelectedIndexChanged);
             // 
             // partialBlockParamPanel
             // 
-            this.partialBlockParamPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.partialBlockParamPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.partialBlockParamPanel.Controls.Add(this.bottomRightPBCheckBox);
             this.partialBlockParamPanel.Controls.Add(this.bottomLeftPBCheckBox);
             this.partialBlockParamPanel.Controls.Add(this.topRightPBCheckBox);
@@ -120,7 +117,7 @@
             this.partialBlockParamPanel.Controls.Add(this.partialBlockExplainLabel);
             this.partialBlockParamPanel.Location = new System.Drawing.Point(164, 69);
             this.partialBlockParamPanel.Name = "partialBlockParamPanel";
-            this.partialBlockParamPanel.Size = new System.Drawing.Size(242, 238);
+            this.partialBlockParamPanel.Size = new System.Drawing.Size(360, 238);
             this.partialBlockParamPanel.TabIndex = 6;
             // 
             // bottomRightPBCheckBox
@@ -174,38 +171,35 @@
             // 
             // pipeDoorParamPanel
             // 
-            this.pipeDoorParamPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pipeDoorParamPanel.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.pipeDoorParamPanel.Controls.Add(this.pipeDoorTypeListBox);
             this.pipeDoorParamPanel.Controls.Add(this.pipeDoorMainTypeComboBox);
             this.pipeDoorParamPanel.Location = new System.Drawing.Point(164, 69);
             this.pipeDoorParamPanel.Name = "pipeDoorParamPanel";
-            this.pipeDoorParamPanel.Size = new System.Drawing.Size(242, 238);
+            this.pipeDoorParamPanel.Size = new System.Drawing.Size(360, 238);
             this.pipeDoorParamPanel.TabIndex = 5;
             // 
             // pipeDoorTypeListBox
             // 
-            this.pipeDoorTypeListBox.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pipeDoorTypeListBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left)));
             this.pipeDoorTypeListBox.FormattingEnabled = true;
             this.pipeDoorTypeListBox.IntegralHeight = false;
             this.pipeDoorTypeListBox.Location = new System.Drawing.Point(0, 27);
             this.pipeDoorTypeListBox.Name = "pipeDoorTypeListBox";
-            this.pipeDoorTypeListBox.Size = new System.Drawing.Size(242, 211);
+            this.pipeDoorTypeListBox.Size = new System.Drawing.Size(360, 211);
             this.pipeDoorTypeListBox.TabIndex = 1;
             this.pipeDoorTypeListBox.SelectedIndexChanged += new System.EventHandler(this.pipeDoorTypeListBox_SelectedIndexChanged);
             // 
             // pipeDoorMainTypeComboBox
             // 
-            this.pipeDoorMainTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pipeDoorMainTypeComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.pipeDoorMainTypeComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.pipeDoorMainTypeComboBox.FormattingEnabled = true;
             this.pipeDoorMainTypeComboBox.Location = new System.Drawing.Point(0, 0);
             this.pipeDoorMainTypeComboBox.Name = "pipeDoorMainTypeComboBox";
-            this.pipeDoorMainTypeComboBox.Size = new System.Drawing.Size(242, 21);
+            this.pipeDoorMainTypeComboBox.Size = new System.Drawing.Size(360, 21);
             this.pipeDoorMainTypeComboBox.TabIndex = 0;
             this.pipeDoorMainTypeComboBox.SelectedIndexChanged += new System.EventHandler(this.pipeDoorMainTypeComboBox_SelectedIndexChanged);
             // 
@@ -231,7 +225,7 @@
             this.Controls.Add(this.subTypeLabel);
             this.Controls.Add(this.flagsListBox);
             this.Name = "BehaviorEditor";
-            this.Size = new System.Drawing.Size(413, 310);
+            this.Size = new System.Drawing.Size(531, 310);
             this.partialBlockParamPanel.ResumeLayout(false);
             this.partialBlockParamPanel.PerformLayout();
             this.pipeDoorParamPanel.ResumeLayout(false);

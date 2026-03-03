@@ -33,6 +33,7 @@
             this.panel1 = new System.Windows.Forms.Panel();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.panel4 = new System.Windows.Forms.Panel();
+            this.removeBitmapBtn = new System.Windows.Forms.Button();
             this.lblBitmaps = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
             this.lblPalettes = new System.Windows.Forms.Label();
@@ -231,6 +232,7 @@
             // 
             // panel2
             // 
+            this.panel2.Controls.Add(this.removeBitmapBtn);
             this.panel2.Controls.Add(this.autopaletteCheckBox);
             this.panel2.Controls.Add(this.importAllBtn);
             this.panel2.Controls.Add(this.saveAllBtn);
@@ -243,6 +245,16 @@
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(249, 186);
             this.panel2.TabIndex = 5;
+            // 
+            // removeBitmapBtn
+            // 
+            this.removeBitmapBtn.Location = new System.Drawing.Point(165, 3);
+            this.removeBitmapBtn.Name = "removeBitmapBtn";
+            this.removeBitmapBtn.Size = new System.Drawing.Size(78, 23);
+            this.removeBitmapBtn.TabIndex = 4;
+            this.removeBitmapBtn.Text = "<RemoveSelected>";
+            this.removeBitmapBtn.UseVisualStyleBackColor = true;
+            this.removeBitmapBtn.Click += new System.EventHandler(this.removeBitmapBtn_Click);
             // 
             // autopaletteCheckBox
             // 
@@ -268,7 +280,7 @@
             // 
             // saveAllBtn
             // 
-            this.saveAllBtn.Location = new System.Drawing.Point(168, 3);
+            this.saveAllBtn.Location = new System.Drawing.Point(84, 3);
             this.saveAllBtn.Name = "saveAllBtn";
             this.saveAllBtn.Size = new System.Drawing.Size(75, 23);
             this.saveAllBtn.TabIndex = 0;
@@ -310,7 +322,7 @@
             // 
             this.exportThisBtn.Location = new System.Drawing.Point(3, 3);
             this.exportThisBtn.Name = "exportThisBtn";
-            this.exportThisBtn.Size = new System.Drawing.Size(116, 23);
+            this.exportThisBtn.Size = new System.Drawing.Size(75, 23);
             this.exportThisBtn.TabIndex = 0;
             this.exportThisBtn.Text = "<Export this bitmap>";
             this.exportThisBtn.UseVisualStyleBackColor = true;
@@ -375,5 +387,6 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Button importThisWithPalBtn;
         private System.Windows.Forms.CheckBox autopaletteCheckBox;
+        private System.Windows.Forms.Button removeBitmapBtn;
     }
 }

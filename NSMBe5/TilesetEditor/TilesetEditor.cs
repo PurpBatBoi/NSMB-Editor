@@ -82,6 +82,7 @@ namespace NSMBe5
 	            imageManager1.addPalette(t.palettes[i]);
 
             tileBehaviorPicker.init(new Bitmap[] { t.Map16Buffer }, 16);
+            tileBehaviorPicker.SetZoom((int)behaviorZoomUpDown.Value);
 
             //FIXME
 //            graphicsEditor1.SaveGraphics += new GraphicsEditor.SaveGraphicsHandler(graphicsEditor1_SaveGraphics);
@@ -290,6 +291,11 @@ namespace NSMBe5
             for(int x = 0; x < tileBehaviorPicker.selTileWidth; x++)
                 for(int y = 0; y < tileBehaviorPicker.selTileHeight; y++)
                     t.TileBehaviors[tileBehaviorPicker.selTileNum + x + y*tileBehaviorPicker.bufferWidth] = val;
+        }
+
+        private void behaviorZoomUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            tileBehaviorPicker.SetZoom((int)behaviorZoomUpDown.Value);
         }
 
         private void imageManager1_SomethingSaved()

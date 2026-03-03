@@ -47,9 +47,14 @@
             this.previewBox = new System.Windows.Forms.PictureBox();
             this.lblObjectPreview = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.splitterRight = new System.Windows.Forms.Splitter();
             this.tilePicker1 = new NSMBe5.TilePicker();
             this.lblMap16Tiles = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
+            this.lblObjectEditorZoom = new System.Windows.Forms.Label();
+            this.objectEditorZoomUpDown = new System.Windows.Forms.NumericUpDown();
+            this.lblMap16Zoom = new System.Windows.Forms.Label();
+            this.map16ZoomUpDown = new System.Windows.Forms.NumericUpDown();
             this.deleteButton = new System.Windows.Forms.Button();
             this.newLineButton = new System.Windows.Forms.Button();
             this.emptyTileButton = new System.Windows.Forms.Button();
@@ -68,6 +73,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.previewBox)).BeginInit();
             this.panel1.SuspendLayout();
             this.panel3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.objectEditorZoomUpDown)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.map16ZoomUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // editZone
@@ -302,24 +309,37 @@
             // 
             // panel1
             // 
-            this.panel1.AutoSize = true;
+            this.panel1.AutoSize = false;
             this.panel1.Controls.Add(this.tilePicker1);
             this.panel1.Controls.Add(this.lblMap16Tiles);
             this.panel1.Controls.Add(this.panel3);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel1.Location = new System.Drawing.Point(400, 0);
+            this.panel1.MinimumSize = new System.Drawing.Size(274, 0);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(274, 389);
             this.panel1.TabIndex = 2;
+            // 
+            // splitterRight
+            // 
+            this.splitterRight.BackColor = System.Drawing.SystemColors.ControlDark;
+            this.splitterRight.Dock = System.Windows.Forms.DockStyle.Right;
+            this.splitterRight.Location = new System.Drawing.Point(395, 0);
+            this.splitterRight.MinExtra = 220;
+            this.splitterRight.MinSize = 274;
+            this.splitterRight.Name = "splitterRight";
+            this.splitterRight.Size = new System.Drawing.Size(5, 389);
+            this.splitterRight.TabIndex = 3;
+            this.splitterRight.TabStop = false;
             // 
             // tilePicker1
             // 
             this.tilePicker1.AutoSize = true;
             this.tilePicker1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tilePicker1.Location = new System.Drawing.Point(0, 68);
+            this.tilePicker1.Location = new System.Drawing.Point(0, 95);
             this.tilePicker1.MinimumSize = new System.Drawing.Size(274, 224);
             this.tilePicker1.Name = "tilePicker1";
-            this.tilePicker1.Size = new System.Drawing.Size(274, 321);
+            this.tilePicker1.Size = new System.Drawing.Size(274, 294);
             this.tilePicker1.TabIndex = 6;
             this.tilePicker1.TileSelected += new NSMBe5.TilePicker.TileSelectedd(this.tilePicker1_TileSelected);
             // 
@@ -328,7 +348,7 @@
             this.lblMap16Tiles.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.lblMap16Tiles.Dock = System.Windows.Forms.DockStyle.Top;
             this.lblMap16Tiles.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.lblMap16Tiles.Location = new System.Drawing.Point(0, 55);
+            this.lblMap16Tiles.Location = new System.Drawing.Point(0, 82);
             this.lblMap16Tiles.Name = "lblMap16Tiles";
             this.lblMap16Tiles.Size = new System.Drawing.Size(274, 13);
             this.lblMap16Tiles.TabIndex = 4;
@@ -336,6 +356,10 @@
             // 
             // panel3
             // 
+            this.panel3.Controls.Add(this.lblObjectEditorZoom);
+            this.panel3.Controls.Add(this.objectEditorZoomUpDown);
+            this.panel3.Controls.Add(this.lblMap16Zoom);
+            this.panel3.Controls.Add(this.map16ZoomUpDown);
             this.panel3.Controls.Add(this.deleteButton);
             this.panel3.Controls.Add(this.newLineButton);
             this.panel3.Controls.Add(this.emptyTileButton);
@@ -343,8 +367,72 @@
             this.panel3.Dock = System.Windows.Forms.DockStyle.Top;
             this.panel3.Location = new System.Drawing.Point(0, 0);
             this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(274, 55);
+            this.panel3.Size = new System.Drawing.Size(274, 82);
             this.panel3.TabIndex = 5;
+            // 
+            // lblObjectEditorZoom
+            // 
+            this.lblObjectEditorZoom.AutoSize = true;
+            this.lblObjectEditorZoom.Location = new System.Drawing.Point(99, 34);
+            this.lblObjectEditorZoom.Name = "lblObjectEditorZoom";
+            this.lblObjectEditorZoom.Size = new System.Drawing.Size(66, 13);
+            this.lblObjectEditorZoom.TabIndex = 1;
+            this.lblObjectEditorZoom.Text = "<ObjectZoom>";
+            // 
+            // objectEditorZoomUpDown
+            // 
+            this.objectEditorZoomUpDown.Location = new System.Drawing.Point(177, 32);
+            this.objectEditorZoomUpDown.Maximum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.objectEditorZoomUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.objectEditorZoomUpDown.Name = "objectEditorZoomUpDown";
+            this.objectEditorZoomUpDown.Size = new System.Drawing.Size(72, 20);
+            this.objectEditorZoomUpDown.TabIndex = 2;
+            this.objectEditorZoomUpDown.Value = new decimal(new int[] {
+            3,
+            0,
+            0,
+            0});
+            this.objectEditorZoomUpDown.ValueChanged += new System.EventHandler(this.objectEditorZoomUpDown_ValueChanged);
+            // 
+            // lblMap16Zoom
+            // 
+            this.lblMap16Zoom.AutoSize = true;
+            this.lblMap16Zoom.Location = new System.Drawing.Point(99, 60);
+            this.lblMap16Zoom.Name = "lblMap16Zoom";
+            this.lblMap16Zoom.Size = new System.Drawing.Size(65, 13);
+            this.lblMap16Zoom.TabIndex = 3;
+            this.lblMap16Zoom.Text = "<Map16Zoom>";
+            // 
+            // map16ZoomUpDown
+            // 
+            this.map16ZoomUpDown.Location = new System.Drawing.Point(177, 58);
+            this.map16ZoomUpDown.Maximum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.map16ZoomUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.map16ZoomUpDown.Name = "map16ZoomUpDown";
+            this.map16ZoomUpDown.Size = new System.Drawing.Size(72, 20);
+            this.map16ZoomUpDown.TabIndex = 4;
+            this.map16ZoomUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.map16ZoomUpDown.ValueChanged += new System.EventHandler(this.map16ZoomUpDown_ValueChanged);
             // 
             // deleteButton
             // 
@@ -391,6 +479,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.splitContainer1);
+            this.Controls.Add(this.splitterRight);
             this.Controls.Add(this.panel1);
             this.Name = "TilesetObjectEditor";
             this.Size = new System.Drawing.Size(674, 389);
@@ -412,6 +501,9 @@
             this.panel1.ResumeLayout(false);
             this.panel1.PerformLayout();
             this.panel3.ResumeLayout(false);
+            this.panel3.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.objectEditorZoomUpDown)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.map16ZoomUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -445,5 +537,10 @@
         private System.Windows.Forms.Label description;
         private System.Windows.Forms.Button deleteButton;
         private TilePicker tilePicker1;
+        private System.Windows.Forms.Label lblObjectEditorZoom;
+        private System.Windows.Forms.NumericUpDown objectEditorZoomUpDown;
+        private System.Windows.Forms.Label lblMap16Zoom;
+        private System.Windows.Forms.NumericUpDown map16ZoomUpDown;
+        private System.Windows.Forms.Splitter splitterRight;
     }
 }

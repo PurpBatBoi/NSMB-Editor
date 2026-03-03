@@ -26,6 +26,7 @@ namespace NSMBe5
     public class Image2D : PixelPalettedImage
     {
         private File f;
+        public File SourceFile { get { return f; } }
         protected byte[] data;
         private byte[] rawdata;
         public int width;

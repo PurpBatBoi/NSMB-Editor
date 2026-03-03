@@ -22,6 +22,7 @@ using System.Drawing;
 using System.Data;
 using System.Text;
 using System.Windows.Forms;
+using NSMBe5.DSFileSystem;
 
 namespace NSMBe5
 {
@@ -102,7 +103,7 @@ namespace NSMBe5
         {
             if (Control.ModifierKeys == Keys.Control)
             {
-                if(imageListBox.SelectedItem is PalettedImage)
+                if (standalone && imageListBox.SelectedItem is PalettedImage)
                 	(imageListBox.SelectedItem as PalettedImage).endEdit();
                 imageListBox.Items.Remove(imageListBox.SelectedItem);
             }
@@ -124,7 +125,7 @@ namespace NSMBe5
         {
             if (Control.ModifierKeys == Keys.Control)
             {
-            	if(paletteListBox.SelectedItem is Palette)
+            	if(standalone && paletteListBox.SelectedItem is Palette)
 	                (paletteListBox.SelectedItem as Palette).endEdit();
                 paletteListBox.Items.Remove(paletteListBox.SelectedItem);
             }
@@ -143,15 +144,88 @@ namespace NSMBe5
         private void imageListBox_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
-                if (imageListBox.SelectedItem != null)
-                    imageListBox.Items.Remove(imageListBox.SelectedItem);
+            {
+                int index = imageListBox.IndexFromPoint(e.Location);
+                if (index != ListBox.NoMatches)
+                    imageListBox.SelectedIndex = index;
+
+                FocusSelectedFileInRomBrowser(true);
+            }
         }
 
         private void paletteListBox_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Right)
-                if (paletteListBox.SelectedItem != null)
-                    paletteListBox.Items.Remove(paletteListBox.SelectedItem);
+            {
+                int index = paletteListBox.IndexFromPoint(e.Location);
+                if (index != ListBox.NoMatches)
+                    paletteListBox.SelectedIndex = index;
+
+                FocusSelectedFileInRomBrowser(false);
+            }
+        }
+
+        private void removeBitmapBtn_Click(object sender, EventArgs e)
+        {
+            RemoveSelectedBitmap();
+        }
+
+        private void RemoveSelectedBitmap()
+        {
+            if (!(imageListBox.SelectedItem is PalettedImage selectedImage))
+                return;
+
+            if (standalone)
+                selectedImage.endEdit();
+            imageListBox.Items.Remove(selectedImage);
+        }
+
+        private void FocusSelectedFileInRomBrowser(bool imageList)
+        {
+            File sourceFile = imageList ? GetSelectedImageFile() : GetSelectedPaletteFile();
+            if (sourceFile == null)
+                return;
+
+            LevelChooser.FocusFileInRomBrowser(sourceFile);
+        }
+
+        private File GetSelectedImageFile()
+        {
+            if (imageListBox.SelectedItem is Image2D image)
+                return ResolveRootFile(image.SourceFile);
+
+            return null;
+        }
+
+        private File GetSelectedPaletteFile()
+        {
+            if (paletteListBox.SelectedItem is FilePalette palette)
+                return ResolveRootFile(palette.SourceFile);
+
+            return null;
+        }
+
+        private File ResolveRootFile(File file)
+        {
+            File current = file;
+            while (current != null)
+            {
+                if (current is InlineFile inline)
+                {
+                    current = inline.ParentFile;
+                    continue;
+                }
+
+                if (current is CompressedFile compressed)
+                {
+                    current = compressed.ParentFile;
+                    continue;
+                }
+
+                break;
+            }
+
+            return current;
         }
 
         private void tileWidthNumber_ValueChanged(object sender, EventArgs e)

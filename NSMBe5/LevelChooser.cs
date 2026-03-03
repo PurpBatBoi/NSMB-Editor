@@ -46,6 +46,20 @@ namespace NSMBe5 {
             imgMgr.Show();
         }
 
+        public static bool FocusFileInRomBrowser(NSMBe5.DSFileSystem.File file)
+        {
+            if (file == null)
+                return false;
+
+            foreach (Form form in Application.OpenForms)
+            {
+                if (form is LevelChooser chooser && !chooser.IsDisposed)
+                    return chooser.FocusFileInRomBrowserInternal(file);
+            }
+
+            return false;
+        }
+
         public LevelChooser()
         {
             InitializeComponent();
@@ -1198,6 +1212,19 @@ namespace NSMBe5 {
             closeROMToolStripMenuItem.Enabled = romLoaded;
             openBackupsToolStripMenuItem.Enabled = Properties.Settings.Default.BackupFiles != "";
             recentFilesToolStripMenuItem.Enabled = true; // Recent files should always be accessible
+        }
+
+        private bool FocusFileInRomBrowserInternal(NSMBe5.DSFileSystem.File file)
+        {
+            if (!romLoaded || file == null)
+                return false;
+
+            if (tabControl1.TabPages.Contains(tabPage1))
+                tabControl1.SelectedTab = tabPage1;
+
+            Activate();
+            BringToFront();
+            return filesystemBrowser1.SelectFile(file);
         }
 
         #endregion

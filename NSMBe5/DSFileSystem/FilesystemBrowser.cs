@@ -764,5 +764,55 @@ namespace NSMBe5.DSFileSystem
                     System.IO.Directory.Delete(DestDir, true);
             }
         }
+
+        public bool SelectFile(File file)
+        {
+            if (file == null)
+                return false;
+
+            if (!string.IsNullOrEmpty(searchTextBox.Text))
+                searchTextBox.Clear();
+
+            TreeNode node = FindFileNode(fileTreeView.Nodes, file);
+            if (node == null)
+                return false;
+
+            ExpandParents(node);
+            fileTreeView.SelectedNode = node;
+            node.EnsureVisible();
+            fileTreeView.Focus();
+            return true;
+        }
+
+        private TreeNode FindFileNode(TreeNodeCollection nodes, File target)
+        {
+            foreach (TreeNode node in nodes)
+            {
+                if (node.Tag is File nodeFile)
+                {
+                    if (Object.ReferenceEquals(nodeFile, target))
+                        return node;
+
+                    if (target.id >= 0 && nodeFile.id == target.id)
+                        return node;
+                }
+
+                TreeNode child = FindFileNode(node.Nodes, target);
+                if (child != null)
+                    return child;
+            }
+
+            return null;
+        }
+
+        private void ExpandParents(TreeNode node)
+        {
+            TreeNode current = node.Parent;
+            while (current != null)
+            {
+                current.Expand();
+                current = current.Parent;
+            }
+        }
     }
 }

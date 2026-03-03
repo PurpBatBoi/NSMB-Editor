@@ -26,6 +26,7 @@ namespace NSMBe5
     public class FilePalette : Palette
     {
         File f;
+        public File SourceFile { get { return f; } }
         string name;
 
         public FilePalette(File f) : this(f, f.name)

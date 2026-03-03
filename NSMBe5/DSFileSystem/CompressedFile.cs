@@ -24,6 +24,7 @@ namespace NSMBe5.DSFileSystem
     public class CompressedFile : FileWithLock
     {
         private File parentFile;
+        public File ParentFile { get { return parentFile; } }
         private CompressionType comp;
 
         public enum CompressionType : int
@@ -131,4 +132,3 @@ namespace NSMBe5.DSFileSystem
         }
     }
 }
-

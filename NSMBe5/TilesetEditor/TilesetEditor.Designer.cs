@@ -38,7 +38,12 @@
             this.imageManager1 = new NSMBe5.ImageManager();
             this.tabPage5 = new System.Windows.Forms.TabPage();
             this.tileBehaviorEditor = new NSMBe5.BehaviorEditor();
+            this.behaviorSplitter = new System.Windows.Forms.Splitter();
+            this.behaviorPickerPanel = new System.Windows.Forms.Panel();
             this.tileBehaviorPicker = new NSMBe5.TilePicker();
+            this.behaviorPickerTopPanel = new System.Windows.Forms.Panel();
+            this.behaviorZoomUpDown = new System.Windows.Forms.NumericUpDown();
+            this.lblBehaviorZoom = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
             this.saveButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
@@ -57,6 +62,9 @@
             this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.tabPage5.SuspendLayout();
+            this.behaviorPickerPanel.SuspendLayout();
+            this.behaviorPickerTopPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.behaviorZoomUpDown)).BeginInit();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -146,7 +154,8 @@
             // tabPage5
             // 
             this.tabPage5.Controls.Add(this.tileBehaviorEditor);
-            this.tabPage5.Controls.Add(this.tileBehaviorPicker);
+            this.tabPage5.Controls.Add(this.behaviorSplitter);
+            this.tabPage5.Controls.Add(this.behaviorPickerPanel);
             this.tabPage5.Location = new System.Drawing.Point(4, 22);
             this.tabPage5.Name = "tabPage5";
             this.tabPage5.Padding = new System.Windows.Forms.Padding(3);
@@ -157,25 +166,89 @@
             // 
             // tileBehaviorEditor
             // 
-            this.tileBehaviorEditor.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.tileBehaviorEditor.Location = new System.Drawing.Point(283, 0);
+            this.tileBehaviorEditor.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tileBehaviorEditor.Location = new System.Drawing.Point(282, 3);
+            this.tileBehaviorEditor.MinimumSize = new System.Drawing.Size(531, 0);
             this.tileBehaviorEditor.Name = "tileBehaviorEditor";
-            this.tileBehaviorEditor.Size = new System.Drawing.Size(663, 510);
+            this.tileBehaviorEditor.Size = new System.Drawing.Size(664, 504);
             this.tileBehaviorEditor.TabIndex = 1;
             this.tileBehaviorEditor.Visible = false;
             this.tileBehaviorEditor.DataChanged += new NSMBe5.BehaviorEditor.DataChangedDelegate(this.tileBehaviorEditor_DataChanged);
             // 
+            // behaviorSplitter
+            // 
+            this.behaviorSplitter.Dock = System.Windows.Forms.DockStyle.Left;
+            this.behaviorSplitter.Location = new System.Drawing.Point(277, 3);
+            this.behaviorSplitter.MinExtra = 531;
+            this.behaviorSplitter.MinSize = 274;
+            this.behaviorSplitter.Name = "behaviorSplitter";
+            this.behaviorSplitter.Size = new System.Drawing.Size(5, 504);
+            this.behaviorSplitter.TabIndex = 3;
+            this.behaviorSplitter.TabStop = false;
+            // 
+            // behaviorPickerPanel
+            // 
+            this.behaviorPickerPanel.Controls.Add(this.tileBehaviorPicker);
+            this.behaviorPickerPanel.Controls.Add(this.behaviorPickerTopPanel);
+            this.behaviorPickerPanel.Dock = System.Windows.Forms.DockStyle.Left;
+            this.behaviorPickerPanel.Location = new System.Drawing.Point(3, 3);
+            this.behaviorPickerPanel.MinimumSize = new System.Drawing.Size(274, 0);
+            this.behaviorPickerPanel.Name = "behaviorPickerPanel";
+            this.behaviorPickerPanel.Size = new System.Drawing.Size(274, 504);
+            this.behaviorPickerPanel.TabIndex = 2;
+            // 
             // tileBehaviorPicker
             // 
             this.tileBehaviorPicker.AutoSize = true;
-            this.tileBehaviorPicker.Dock = System.Windows.Forms.DockStyle.Left;
-            this.tileBehaviorPicker.Location = new System.Drawing.Point(3, 3);
+            this.tileBehaviorPicker.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tileBehaviorPicker.Location = new System.Drawing.Point(0, 26);
             this.tileBehaviorPicker.MinimumSize = new System.Drawing.Size(274, 0);
             this.tileBehaviorPicker.Name = "tileBehaviorPicker";
-            this.tileBehaviorPicker.Size = new System.Drawing.Size(274, 504);
+            this.tileBehaviorPicker.Size = new System.Drawing.Size(274, 478);
             this.tileBehaviorPicker.TabIndex = 0;
             this.tileBehaviorPicker.TileSelected += new NSMBe5.TilePicker.TileSelectedd(this.tileBehaviorPicker_TileSelected);
+            // 
+            // behaviorPickerTopPanel
+            // 
+            this.behaviorPickerTopPanel.Controls.Add(this.behaviorZoomUpDown);
+            this.behaviorPickerTopPanel.Controls.Add(this.lblBehaviorZoom);
+            this.behaviorPickerTopPanel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.behaviorPickerTopPanel.Location = new System.Drawing.Point(0, 0);
+            this.behaviorPickerTopPanel.Name = "behaviorPickerTopPanel";
+            this.behaviorPickerTopPanel.Size = new System.Drawing.Size(274, 26);
+            this.behaviorPickerTopPanel.TabIndex = 1;
+            // 
+            // behaviorZoomUpDown
+            // 
+            this.behaviorZoomUpDown.Location = new System.Drawing.Point(87, 3);
+            this.behaviorZoomUpDown.Maximum = new decimal(new int[] {
+            8,
+            0,
+            0,
+            0});
+            this.behaviorZoomUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.behaviorZoomUpDown.Name = "behaviorZoomUpDown";
+            this.behaviorZoomUpDown.Size = new System.Drawing.Size(54, 20);
+            this.behaviorZoomUpDown.TabIndex = 1;
+            this.behaviorZoomUpDown.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.behaviorZoomUpDown.ValueChanged += new System.EventHandler(this.behaviorZoomUpDown_ValueChanged);
+            // 
+            // lblBehaviorZoom
+            // 
+            this.lblBehaviorZoom.AutoSize = true;
+            this.lblBehaviorZoom.Location = new System.Drawing.Point(3, 5);
+            this.lblBehaviorZoom.Name = "lblBehaviorZoom";
+            this.lblBehaviorZoom.Size = new System.Drawing.Size(65, 13);
+            this.lblBehaviorZoom.TabIndex = 0;
+            this.lblBehaviorZoom.Text = "<ZoomLabel>";
             // 
             // toolStrip1
             // 
@@ -273,7 +346,11 @@
             this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.tabPage5.ResumeLayout(false);
-            this.tabPage5.PerformLayout();
+            this.behaviorPickerPanel.ResumeLayout(false);
+            this.behaviorPickerPanel.PerformLayout();
+            this.behaviorPickerTopPanel.ResumeLayout(false);
+            this.behaviorPickerTopPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.behaviorZoomUpDown)).EndInit();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
             this.ResumeLayout(false);
@@ -306,6 +383,11 @@
         private TilemapEditor.TilemapEditor tilemapEditor1;
         private System.Windows.Forms.TabPage tabPage5;
 		private TilePicker tileBehaviorPicker;
-		private BehaviorEditor tileBehaviorEditor;
+        private BehaviorEditor tileBehaviorEditor;
+        private System.Windows.Forms.Panel behaviorPickerPanel;
+        private System.Windows.Forms.Panel behaviorPickerTopPanel;
+        private System.Windows.Forms.NumericUpDown behaviorZoomUpDown;
+        private System.Windows.Forms.Label lblBehaviorZoom;
+        private System.Windows.Forms.Splitter behaviorSplitter;
     }
 }

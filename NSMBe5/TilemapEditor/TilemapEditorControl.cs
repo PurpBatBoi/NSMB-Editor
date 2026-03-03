@@ -220,7 +220,26 @@ namespace NSMBe5
 
             pictureBox1_MouseMove(sender, e);
 
+            FocusPreservingParentScroll();
+        }
+
+        private void FocusPreservingParentScroll()
+        {
+            ScrollableControl scrollParent = Parent as ScrollableControl;
+            Point scrollPos = Point.Empty;
+            bool restoreScroll = false;
+
+            if (scrollParent != null && scrollParent.AutoScroll)
+            {
+                Point autoScrollPos = scrollParent.AutoScrollPosition;
+                scrollPos = new Point(-autoScrollPos.X, -autoScrollPos.Y);
+                restoreScroll = true;
+            }
+
             this.Focus();
+
+            if (restoreScroll)
+                scrollParent.AutoScrollPosition = scrollPos;
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)

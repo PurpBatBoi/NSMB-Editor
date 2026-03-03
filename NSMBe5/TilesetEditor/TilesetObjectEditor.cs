@@ -27,6 +27,10 @@ namespace NSMBe5
 {
     public partial class TilesetObjectEditor : UserControl
     {
+        private const int PreviewZoom = 2;
+        private const int BaseTileSize = 16;
+        private int objectEditorZoom = 3;
+        private int map16TilesZoom = 1;
         List<NSMBTileset.ObjectDefTile> selRow;
         NSMBTileset.ObjectDefTile selTile;
         NSMBTileset.ObjectDef obj;
@@ -88,6 +92,7 @@ namespace NSMBe5
             this.tnum = TilesetNumber;
             this.tls = g.Tilesets[tnum];
             tilePicker1.init(new Bitmap[] { tls.map16.buffer }, 16);
+            tilePicker1.SetZoom(map16TilesZoom);
             previewTile = new NSMBTile(0, tnum, 0, 0, 6, 6, g);
         }
 
@@ -97,9 +102,13 @@ namespace NSMBe5
             if (obj == null) return;
 
             Graphics g = e.Graphics;
+            int editorTileSize = BaseTileSize * objectEditorZoom;
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
             g.FillRectangle(Brushes.LightSteelBlue, 0, 0, editZone.Width, editZone.Height);
 
-            int x = 16;
+            int x = editorTileSize;
             int y = 0;
 
             foreach (List<NSMBTileset.ObjectDefTile> row in obj.tiles)
@@ -108,28 +117,32 @@ namespace NSMBe5
                 {
                     if (t.controlTile)
                     {
-                        g.FillRectangle(Brushes.White, x, y, 15, 15);
-                        g.DrawRectangle(Pens.Black, x, y, 15, 15);
+                        g.FillRectangle(Brushes.White, x, y, editorTileSize - 1, editorTileSize - 1);
+                        g.DrawRectangle(Pens.Black, x, y, editorTileSize - 1, editorTileSize - 1);
                         g.DrawString(String.Format("{0:X2}", t.controlByte), NSMBGraphics.InfoFont, Brushes.Black, x, y);
                     }
                     else if (!t.emptyTile)
                     {
-                        g.DrawImage(tls.Map16Buffer, x, y, Image2D.getTileRectangle(tls.Map16Buffer, 16, t.tileID), GraphicsUnit.Pixel);
+                        g.DrawImage(
+                            tls.Map16Buffer,
+                            new Rectangle(x, y, editorTileSize, editorTileSize),
+                            Image2D.getTileRectangle(tls.Map16Buffer, 16, t.tileID),
+                            GraphicsUnit.Pixel);
                         if ((t.controlByte & 1) != 0)
-                            g.DrawRectangle(Pens.Red, x, y, 15, 15);
+                            g.DrawRectangle(Pens.Red, x, y, editorTileSize - 1, editorTileSize - 1);
                         if ((t.controlByte & 2) != 0)
-                            g.DrawRectangle(Pens.Blue, x+1, y+1, 13, 13);
+                            g.DrawRectangle(Pens.Blue, x + 1, y + 1, editorTileSize - 3, editorTileSize - 3);
                     }
                     if (t == selTile)
-                        g.DrawRectangle(Pens.White, x, y, 15, 15);
-                    x += 16;
+                        g.DrawRectangle(Pens.White, x, y, editorTileSize - 1, editorTileSize - 1);
+                    x += editorTileSize;
                 }
-                g.DrawString((y / 16) + "", NSMBGraphics.InfoFont, Brushes.White, 0, y);
+                g.DrawString((y / editorTileSize) + "", NSMBGraphics.InfoFont, Brushes.White, 0, y);
                 if(selRow == row && selTile == null)
-                    g.DrawRectangle(Pens.White, 0, y, 15, 15);
+                    g.DrawRectangle(Pens.White, 0, y, editorTileSize - 1, editorTileSize - 1);
 
-                x = 16;
-                y += 16;
+                x = editorTileSize;
+                y += editorTileSize;
             }
 
         }
@@ -176,8 +189,9 @@ namespace NSMBe5
             if (obj == null)
                 return;
 
-            int tx = e.X / 16 - 1;
-            int ty = e.Y / 16;
+            int editorTileSize = BaseTileSize * objectEditorZoom;
+            int tx = e.X / editorTileSize - 1;
+            int ty = e.Y / editorTileSize;
 
             if(tx < -1) return;
             if(ty < 0) return;
@@ -186,6 +200,24 @@ namespace NSMBe5
                 if (obj.tiles[ty].Count > tx)
                 {
                     selRow = obj.tiles[ty];
+                    if (e.Button == MouseButtons.Right && tx >= 0)
+                    {
+                        selRow.RemoveAt(tx);
+                        if (selRow.Count > 0)
+                        {
+                            int nextTile = Math.Min(tx, selRow.Count - 1);
+                            selectTile(selRow[nextTile]);
+                        }
+                        else
+                        {
+                            selTile = null;
+                        }
+
+                        grpTileSettings.Visible = selTile != null;
+                        repaint();
+                        return;
+                    }
+
                     if (tx == -1)
                     {
                         selTile = null;
@@ -274,7 +306,11 @@ namespace NSMBe5
             if (previewTile == null)
                 return;
 
-            e.Graphics.FillRectangle(Brushes.LightSteelBlue, 0, 0, previewTile.Width * 16, previewTile.Height * 16);
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+            e.Graphics.ScaleTransform(PreviewZoom, PreviewZoom);
+            e.Graphics.FillRectangle(Brushes.LightSteelBlue, 0, 0, previewTile.Width * BaseTileSize, previewTile.Height * BaseTileSize);
             previewTile.RenderPlain(e.Graphics, 0, 0);
         }
 
@@ -287,8 +323,9 @@ namespace NSMBe5
         {
             if (e.Button == MouseButtons.Left)
             {
-                previewTile.Width = e.X / 16 + 1;
-                previewTile.Height = e.Y / 16 + 1;
+                int previewTileSize = BaseTileSize * PreviewZoom;
+                previewTile.Width = e.X / previewTileSize + 1;
+                previewTile.Height = e.Y / previewTileSize + 1;
                 if (previewTile.Width < 1)
                     previewTile.Width = 1;
                 if (previewTile.Height < 1)
@@ -315,6 +352,7 @@ namespace NSMBe5
         public void redrawThings()
         {
             tilePicker1.init(new Bitmap[] { tls.map16.buffer }, 16);
+            tilePicker1.SetZoom(map16TilesZoom);
         }
 
         private void emptyTileButton_Click(object sender, EventArgs e) {
@@ -391,6 +429,17 @@ namespace NSMBe5
             }
         }
 
+        private void objectEditorZoomUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            objectEditorZoom = (int)objectEditorZoomUpDown.Value;
+            editZone.Invalidate(true);
+        }
+
+        private void map16ZoomUpDown_ValueChanged(object sender, EventArgs e)
+        {
+            map16TilesZoom = (int)map16ZoomUpDown.Value;
+            tilePicker1.SetZoom(map16TilesZoom);
+        }
+
     }
 }
-

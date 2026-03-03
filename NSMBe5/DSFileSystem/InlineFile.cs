@@ -26,6 +26,7 @@ namespace NSMBe5.DSFileSystem
         private int inlineOffs;
         private int inlineLen;
         private File parentFile;
+        public File ParentFile { get { return parentFile; } }
         public InlineFile(File parent, int offs, int len, string name)
         {
         	nameP = name;
