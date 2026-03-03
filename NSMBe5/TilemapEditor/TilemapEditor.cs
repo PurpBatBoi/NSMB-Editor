@@ -223,14 +223,14 @@ namespace NSMBe5.TilemapEditor
             layoutFileLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
             exportBackgroundFilesButton = new Button();
-            exportBackgroundFilesButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            exportBackgroundFilesButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             exportBackgroundFilesButton.Location = new Point(10, 95);
             exportBackgroundFilesButton.Size = new Size(backgroundFilesGroup.Width - 20, 24);
             exportBackgroundFilesButton.Text = LanguageManager.Get("TilemapEditor", "bgExportAllButton");
             exportBackgroundFilesButton.Click += exportBackgroundFilesButton_Click;
 
             importBackgroundFilesButton = new Button();
-            importBackgroundFilesButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            importBackgroundFilesButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             importBackgroundFilesButton.Location = new Point(10, 120);
             importBackgroundFilesButton.Size = new Size(backgroundFilesGroup.Width - 20, 24);
             importBackgroundFilesButton.Text = LanguageManager.Get("TilemapEditor", "bgImportAllButton");
