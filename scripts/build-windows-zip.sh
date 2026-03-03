@@ -17,6 +17,20 @@ require_cmd() {
   fi
 }
 
+resolve_msbuild() {
+  if command -v msbuild >/dev/null 2>&1; then
+    echo "msbuild"
+    return
+  fi
+
+  if command -v MSBuild.exe >/dev/null 2>&1; then
+    echo "MSBuild.exe"
+    return
+  fi
+
+  echo ""
+}
+
 create_zip() {
   local source_dir="$1"
   local zip_path="$2"
@@ -91,11 +105,15 @@ case "$PLATFORM_ARG" in
     ;;
 esac
 
-require_cmd msbuild
+MSBUILD_CMD="$(resolve_msbuild)"
+if [[ -z "$MSBUILD_CMD" ]]; then
+  echo "Missing required command: msbuild (or MSBuild.exe)" >&2
+  exit 1
+fi
 
 echo "==> Restoring/building $APP_NAME ($BUILD_CONF, $MSBUILD_PLATFORM)"
-msbuild "$ROOT_DIR/NSMBe5.sln" /t:Restore
-msbuild "$ROOT_DIR/NSMBe5.sln" /p:Configuration="$BUILD_CONF" /p:Platform="$MSBUILD_PLATFORM"
+"$MSBUILD_CMD" "$ROOT_DIR/NSMBe5.sln" /t:Restore
+"$MSBUILD_CMD" "$ROOT_DIR/NSMBe5.sln" /p:Configuration="$BUILD_CONF" /p:Platform="$MSBUILD_PLATFORM"
 
 if [[ ! -f "$PUBLISH_DIR/$APP_NAME.exe" ]]; then
   echo "Build output not found: $PUBLISH_DIR/$APP_NAME.exe" >&2
