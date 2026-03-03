@@ -116,6 +116,21 @@ chmod +x dist/NSMBe5-linux-x86_64.AppImage
 ./dist/NSMBe5-linux-x86_64.AppImage
 ```
 
+## Automated GitHub Releases
+This repository now includes a workflow at `.github/workflows/release-builds.yml` that:
+- Builds `dist/NSMBe5-windows-anycpu.zip` on Windows.
+- Builds both Linux AppImages on Ubuntu.
+- Publishes all three files to a GitHub Release when you push a version tag.
+
+Create and push a tag to trigger publishing:
+
+```bash
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+After the workflow finishes, assets appear under the matching GitHub Release tag.
+
 ## Screenshots
 <p align="left">
   <img src="https://raw.githubusercontent.com/MammaMiaTeam/NSMB-Editor/master/screenshots/filebrowser.png" width="385" title="File Browser">
