@@ -94,6 +94,17 @@ namespace NSMBe5
             redobutton.Click += new EventHandler(Redo);
         }
 
+        public void ReloadFromTilemap()
+        {
+            if (t == null)
+                return;
+
+            bufferHeight = t.height;
+            bufferWidth = t.width;
+            Size = new Size(bufferWidth * tileSize, bufferHeight * tileSize);
+            pictureBox1.Invalidate(true);
+        }
+
         public bool CanZoomIn
         {
             get { return zoomLevel < MaxZoom; }

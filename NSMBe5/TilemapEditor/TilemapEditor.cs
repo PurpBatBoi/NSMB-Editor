@@ -21,7 +21,10 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Data;
 using System.Text;
+using System.IO;
 using System.Windows.Forms;
+using DSFile = NSMBe5.DSFileSystem.File;
+using IOFile = System.IO.File;
 
 namespace NSMBe5.TilemapEditor
 {
@@ -30,6 +33,15 @@ namespace NSMBe5.TilemapEditor
         Tilemap t;
 
         ToolStripButton[] buttons;
+        private DSFile backgroundGraphicsFile;
+        private DSFile backgroundPaletteFile;
+        private DSFile backgroundLayoutFile;
+        private GroupBox backgroundFilesGroup;
+        private Label graphicsFileLabel;
+        private Label paletteFileLabel;
+        private Label layoutFileLabel;
+        private Button exportBackgroundFilesButton;
+        private Button importBackgroundFilesButton;
 
         public TilemapEditor()
         {
@@ -37,6 +49,7 @@ namespace NSMBe5.TilemapEditor
             LanguageManager.ApplyToContainer(this, "TilemapEditor");
             buttons = new ToolStripButton[] { drawToolButton, xFlipToolButton, yFlipToolButton, copyToolButton, pasteToolButton, changePalToolButton };
             tilemapEditorControl1.ZoomChanged += tilemapEditorControl1_ZoomChanged;
+            InitializeBackgroundInfoPanel();
             UpdateZoomButtons();
         }
 
@@ -52,13 +65,23 @@ namespace NSMBe5.TilemapEditor
             tilemapEditorControl1.load(t);
             tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
             RefreshCanvasPanelWidth();
+            LayoutBackgroundInfoPanel();
             UpdateZoomButtons();
+        }
+
+        public void SetBackgroundFiles(DSFile graphicsFile, DSFile paletteFile, DSFile layoutFile)
+        {
+            backgroundGraphicsFile = graphicsFile;
+            backgroundPaletteFile = paletteFile;
+            backgroundLayoutFile = layoutFile;
+            UpdateBackgroundFileInfo();
         }
 
         public void reload()
         {
             tilePicker1.init(t.buffers, 8);
             tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            LayoutBackgroundInfoPanel();
         }
 
         public void setMode(TilemapEditorControl.EditionMode mode)
@@ -156,6 +179,7 @@ namespace NSMBe5.TilemapEditor
         {
             tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
             RefreshCanvasPanelWidth();
+            LayoutBackgroundInfoPanel();
             UpdateZoomButtons();
         }
 
@@ -169,6 +193,191 @@ namespace NSMBe5.TilemapEditor
         private void RefreshCanvasPanelWidth()
         {
             panel1.Width = tilemapEditorControl1.Width + 30;
+        }
+
+        private void InitializeBackgroundInfoPanel()
+        {
+            backgroundFilesGroup = new GroupBox();
+            backgroundFilesGroup.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            backgroundFilesGroup.Location = new Point(8, 168);
+            backgroundFilesGroup.Size = new Size(Math.Max(220, panel2.Width - 16), 156);
+            backgroundFilesGroup.Text = LanguageManager.Get("TilemapEditor", "bgFilesGroup");
+            backgroundFilesGroup.Visible = false;
+
+            graphicsFileLabel = new Label();
+            graphicsFileLabel.AutoEllipsis = true;
+            graphicsFileLabel.Location = new Point(10, 24);
+            graphicsFileLabel.Size = new Size(backgroundFilesGroup.Width - 20, 20);
+            graphicsFileLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            paletteFileLabel = new Label();
+            paletteFileLabel.AutoEllipsis = true;
+            paletteFileLabel.Location = new Point(10, 47);
+            paletteFileLabel.Size = new Size(backgroundFilesGroup.Width - 20, 20);
+            paletteFileLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            layoutFileLabel = new Label();
+            layoutFileLabel.AutoEllipsis = true;
+            layoutFileLabel.Location = new Point(10, 70);
+            layoutFileLabel.Size = new Size(backgroundFilesGroup.Width - 20, 20);
+            layoutFileLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+            exportBackgroundFilesButton = new Button();
+            exportBackgroundFilesButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            exportBackgroundFilesButton.Location = new Point(10, 95);
+            exportBackgroundFilesButton.Size = new Size(backgroundFilesGroup.Width - 20, 24);
+            exportBackgroundFilesButton.Text = LanguageManager.Get("TilemapEditor", "bgExportAllButton");
+            exportBackgroundFilesButton.Click += exportBackgroundFilesButton_Click;
+
+            importBackgroundFilesButton = new Button();
+            importBackgroundFilesButton.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            importBackgroundFilesButton.Location = new Point(10, 120);
+            importBackgroundFilesButton.Size = new Size(backgroundFilesGroup.Width - 20, 24);
+            importBackgroundFilesButton.Text = LanguageManager.Get("TilemapEditor", "bgImportAllButton");
+            importBackgroundFilesButton.Click += importBackgroundFilesButton_Click;
+
+            backgroundFilesGroup.Controls.Add(graphicsFileLabel);
+            backgroundFilesGroup.Controls.Add(paletteFileLabel);
+            backgroundFilesGroup.Controls.Add(layoutFileLabel);
+            backgroundFilesGroup.Controls.Add(exportBackgroundFilesButton);
+            backgroundFilesGroup.Controls.Add(importBackgroundFilesButton);
+            panel2.Controls.Add(backgroundFilesGroup);
+            panel2.Resize += panel2_Resize;
+        }
+
+        private void panel2_Resize(object sender, EventArgs e)
+        {
+            if (backgroundFilesGroup == null)
+                return;
+
+            backgroundFilesGroup.Width = Math.Max(220, panel2.Width - 16);
+            int contentWidth = backgroundFilesGroup.Width - 20;
+            graphicsFileLabel.Width = contentWidth;
+            paletteFileLabel.Width = contentWidth;
+            layoutFileLabel.Width = contentWidth;
+            exportBackgroundFilesButton.Width = contentWidth;
+            importBackgroundFilesButton.Width = contentWidth;
+            LayoutBackgroundInfoPanel();
+        }
+
+        private void LayoutBackgroundInfoPanel()
+        {
+            if (backgroundFilesGroup == null)
+                return;
+
+            int y = tilePicker1.Bottom + 8;
+            if (y < 8)
+                y = 8;
+            backgroundFilesGroup.Location = new Point(8, y);
+        }
+
+        private void UpdateBackgroundFileInfo()
+        {
+            bool hasFiles = backgroundGraphicsFile != null && backgroundPaletteFile != null && backgroundLayoutFile != null;
+            backgroundFilesGroup.Visible = hasFiles;
+            if (!hasFiles)
+                return;
+
+            graphicsFileLabel.Text = string.Format("{0} {1}", LanguageManager.Get("TilemapEditor", "graphicsFileLabel"), backgroundGraphicsFile.name);
+            paletteFileLabel.Text = string.Format("{0} {1}", LanguageManager.Get("TilemapEditor", "paletteFileLabel"), backgroundPaletteFile.name);
+            layoutFileLabel.Text = string.Format("{0} {1}", LanguageManager.Get("TilemapEditor", "layoutFileLabel"), backgroundLayoutFile.name);
+        }
+
+        private void exportBackgroundFilesButton_Click(object sender, EventArgs e)
+        {
+            if (!CanUseBackgroundFiles())
+                return;
+
+            using (FolderBrowserDialog dialog = new FolderBrowserDialog())
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                WriteFileToDirectory(backgroundGraphicsFile, dialog.SelectedPath);
+                WriteFileToDirectory(backgroundPaletteFile, dialog.SelectedPath);
+                WriteFileToDirectory(backgroundLayoutFile, dialog.SelectedPath);
+            }
+        }
+
+        private void importBackgroundFilesButton_Click(object sender, EventArgs e)
+        {
+            if (!CanUseBackgroundFiles())
+                return;
+
+            string ncgPath = PromptBackgroundImportFile("_ncg");
+            if (ncgPath == null) return;
+            string nclPath = PromptBackgroundImportFile("_ncl");
+            if (nclPath == null) return;
+            string nscPath = PromptBackgroundImportFile("_nsc");
+            if (nscPath == null) return;
+
+            try
+            {
+                ReplaceBackgroundFile(backgroundGraphicsFile, IOFile.ReadAllBytes(ncgPath));
+                ReplaceBackgroundFile(backgroundPaletteFile, IOFile.ReadAllBytes(nclPath));
+                ReplaceBackgroundFile(backgroundLayoutFile, IOFile.ReadAllBytes(nscPath));
+                RefreshAfterBackgroundImport();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, LanguageManager.Get("Errors", "errortitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private bool CanUseBackgroundFiles()
+        {
+            return backgroundGraphicsFile != null && backgroundPaletteFile != null && backgroundLayoutFile != null;
+        }
+
+        private static void WriteFileToDirectory(DSFile file, string directoryPath)
+        {
+            string outputPath = Path.Combine(directoryPath, file.name);
+            IOFile.WriteAllBytes(outputPath, file.getContents());
+        }
+
+        private string PromptBackgroundImportFile(string suffix)
+        {
+            using (OpenFileDialog dialog = new OpenFileDialog())
+            {
+                dialog.CheckFileExists = true;
+                dialog.Filter = LanguageManager.Get("Filters", "all");
+                dialog.Title = string.Format("{0} ({1})", LanguageManager.Get("TilemapEditor", "bgImportAllButton"), suffix);
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                    return null;
+
+                return dialog.FileName;
+            }
+        }
+
+        private void ReplaceBackgroundFile(DSFile targetFile, byte[] newContents)
+        {
+            if (targetFile.beingEditedBy(t))
+            {
+                targetFile.replace(newContents, t);
+                return;
+            }
+
+            targetFile.beginEdit(this);
+            try
+            {
+                targetFile.replace(newContents, this);
+            }
+            finally
+            {
+                if (targetFile.beingEditedBy(this))
+                    targetFile.endEdit(this);
+            }
+        }
+
+        private void RefreshAfterBackgroundImport()
+        {
+            t.ReloadResources(true, true, true);
+            tilemapEditorControl1.ReloadFromTilemap();
+            tilePicker1.init(t.buffers, 8);
+            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            RefreshCanvasPanelWidth();
+            tilemapEditorControl1.Invalidate(true);
+            tilePicker1.Invalidate(true);
         }
     }
 }

@@ -90,6 +90,33 @@ namespace NSMBe5
             f.replace(os.getArray(), this);
         }
 
+        public void ReloadResources(bool reloadImage, bool reloadPalettes, bool reloadLayout)
+        {
+            if (reloadImage && tileset != null)
+                tileset.reload();
+
+            if (reloadPalettes && palettes != null)
+            {
+                foreach (Palette palette in palettes)
+                {
+                    if (palette is FilePalette filePalette)
+                    {
+                        filePalette.pal = FilePalette.arrayToPalette(filePalette.SourceFile.getContents());
+                        if (filePalette.pal.Length > 0)
+                            filePalette.pal[0] = Color.Transparent;
+                    }
+                }
+            }
+
+            if (reloadLayout)
+                load();
+
+            if (buffers == null || buffer == null)
+                render();
+            else
+                reRenderAll();
+        }
+
         public Tile getTileAtPos(int x, int y)
         {
             return tiles[x,y];
