@@ -233,7 +233,7 @@ namespace NSMBe5
             }
 
             t.render();
-            new TilemapEditorWindow(t).Show();
+            new TilemapEditorWindow(t, GFXFile.name, PalFile.name, LayoutFile.name).Show();
         }
 
         private void tilesetListBox_DoubleClick(object sender, EventArgs e)

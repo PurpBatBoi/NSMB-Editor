@@ -30,6 +30,11 @@ namespace NSMBe5.TilemapEditor
         Tilemap t;
 
         public TilemapEditorWindow(Tilemap t)
+            : this(t, null, null, null)
+        {
+        }
+
+        public TilemapEditorWindow(Tilemap t, string graphicsFileName, string paletteFileName, string layoutFileName)
         {
             InitializeComponent();
             LanguageManager.ApplyToContainer(this, "TilemapEditor");
@@ -37,6 +42,25 @@ namespace NSMBe5.TilemapEditor
             t.beginEdit();
             tilemapEditor1.showSaveButton();
             tilemapEditor1.load(t);
+            SetFilesStatus(graphicsFileName, paletteFileName, layoutFileName);
+        }
+
+        private void SetFilesStatus(string graphicsFileName, string paletteFileName, string layoutFileName)
+        {
+            if (string.IsNullOrEmpty(graphicsFileName) &&
+                string.IsNullOrEmpty(paletteFileName) &&
+                string.IsNullOrEmpty(layoutFileName))
+            {
+                statusStrip1.Visible = false;
+                return;
+            }
+
+            statusStrip1.Visible = true;
+            filesStatusLabel.Text = string.Format(
+                "{0} {1} | {2} {3} | {4} {5}",
+                LanguageManager.Get("TilemapEditor", "graphicsFileLabel"), graphicsFileName ?? "-",
+                LanguageManager.Get("TilemapEditor", "paletteFileLabel"), paletteFileName ?? "-",
+                LanguageManager.Get("TilemapEditor", "layoutFileLabel"), layoutFileName ?? "-");
         }
 
         private void TilemapEditorWindow_FormClosing(object sender, FormClosingEventArgs e)
