@@ -32,6 +32,7 @@ namespace NSMBe5
         {
             InitializeComponent();
             LanguageManager.ApplyToContainer(this, "ImageManager");
+            UpdateTilesetFileButtonsVisibility();
         }
 
         public bool standalone = false;
@@ -44,6 +45,8 @@ namespace NSMBe5
             imageListBox.Items.Add(i);
             if (imageListBox.Items.Count == 1)
                 imageListBox.SelectedItem = i;
+
+            UpdateTilesetFileButtonsVisibility();
         }
 
         public Image2D getSelectedImage()
@@ -70,6 +73,8 @@ namespace NSMBe5
             paletteListBox.Items.Add(p);
             if (paletteListBox.Items.Count == 1)
                 paletteListBox.SelectedItem = p;
+
+            UpdateTilesetFileButtonsVisibility();
         }
 
         private void updateImage()
@@ -119,6 +124,8 @@ namespace NSMBe5
                 }
             }            
 
+            UpdateTilesetFileButtonsVisibility();
+
         }
 
         private void paletteListBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -131,6 +138,8 @@ namespace NSMBe5
             }
             else
                 updateImage();
+
+            UpdateTilesetFileButtonsVisibility();
         }
 
         public void close()
@@ -178,6 +187,7 @@ namespace NSMBe5
             if (standalone)
                 selectedImage.endEdit();
             imageListBox.Items.Remove(selectedImage);
+            UpdateTilesetFileButtonsVisibility();
         }
 
         private void FocusSelectedFileInRomBrowser(bool imageList)
@@ -373,6 +383,124 @@ namespace NSMBe5
         {
             if (SomethingSaved != null)
                 SomethingSaved();
+        }
+
+        private void exportTilesetFilesBtn_Click(object sender, EventArgs e)
+        {
+            if (!TryGetTilesetGraphicsData(out File ncgRawFile, out _) ||
+                !TryGetTilesetPaletteData(out File nclRawFile, out _))
+                return;
+
+            using (FolderBrowserDialog dialog = new FolderBrowserDialog())
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(dialog.SelectedPath, ncgRawFile.name), ncgRawFile.getContents());
+                System.IO.File.WriteAllBytes(System.IO.Path.Combine(dialog.SelectedPath, nclRawFile.name), nclRawFile.getContents());
+            }
+        }
+
+        private void importTilesetFilesBtn_Click(object sender, EventArgs e)
+        {
+            if (!TryGetTilesetGraphicsData(out File ncgRawFile, out object ncgEditor) ||
+                !TryGetTilesetPaletteData(out File nclRawFile, out object nclEditor))
+                return;
+
+            string ncgPath = PromptTilesetFile("_ncg");
+            if (ncgPath == null) return;
+            string nclPath = PromptTilesetFile("_ncl");
+            if (nclPath == null) return;
+
+            try
+            {
+                ncgRawFile.replace(System.IO.File.ReadAllBytes(ncgPath), ncgEditor);
+                nclRawFile.replace(System.IO.File.ReadAllBytes(nclPath), nclEditor);
+                RefreshAfterTilesetFileImport();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, LanguageManager.Get("General", "Warning"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private bool TryGetTilesetGraphicsData(out File rawFile, out object editor)
+        {
+            rawFile = null;
+            editor = null;
+
+            foreach (object item in imageListBox.Items)
+            {
+                if (!(item is Image2D image) || !(image.SourceFile is CompressedFile compressed))
+                    continue;
+
+                rawFile = compressed.ParentFile;
+                editor = compressed;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool TryGetTilesetPaletteData(out File rawFile, out object editor)
+        {
+            rawFile = null;
+            editor = null;
+
+            foreach (object item in paletteListBox.Items)
+            {
+                if (!(item is FilePalette palette) || !(palette.SourceFile is InlineFile inline) || !(inline.ParentFile is CompressedFile compressed))
+                    continue;
+
+                rawFile = compressed.ParentFile;
+                editor = compressed;
+                return true;
+            }
+
+            return false;
+        }
+
+        private string PromptTilesetFile(string suffix)
+        {
+            using (OpenFileDialog dialog = new OpenFileDialog())
+            {
+                dialog.CheckFileExists = true;
+                dialog.Filter = LanguageManager.Get("Filters", "all");
+                dialog.Title = string.Format("{0} ({1})", LanguageManager.Get("ImageManager", "importTilesetFilesBtn"), suffix);
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                    return null;
+
+                return dialog.FileName;
+            }
+        }
+
+        private void RefreshAfterTilesetFileImport()
+        {
+            foreach (object item in imageListBox.Items)
+            {
+                if (item is Image2D image)
+                    image.reload();
+            }
+
+            foreach (object item in paletteListBox.Items)
+            {
+                if (!(item is FilePalette palette))
+                    continue;
+
+                palette.pal = FilePalette.arrayToPalette(palette.SourceFile.getContents());
+                if (palette.pal.Length > 0)
+                    palette.pal[0] = Color.Transparent;
+            }
+
+            updateImage();
+            graphicsEditor1.Invalidate(true);
+        }
+
+        private void UpdateTilesetFileButtonsVisibility()
+        {
+            bool visible = TryGetTilesetGraphicsData(out _, out _) && TryGetTilesetPaletteData(out _, out _);
+            exportTilesetFilesBtn.Visible = visible;
+            importTilesetFilesBtn.Visible = visible;
         }
 
 

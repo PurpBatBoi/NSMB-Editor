@@ -46,6 +46,8 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.autopaletteCheckBox = new System.Windows.Forms.CheckBox();
             this.importAllBtn = new System.Windows.Forms.Button();
+            this.exportTilesetFilesBtn = new System.Windows.Forms.Button();
+            this.importTilesetFilesBtn = new System.Windows.Forms.Button();
             this.saveAllBtn = new System.Windows.Forms.Button();
             this.exportAllBtn = new System.Windows.Forms.Button();
             this.importThisWithPalBtn = new System.Windows.Forms.Button();
@@ -234,6 +236,8 @@
             // 
             this.panel2.Controls.Add(this.removeBitmapBtn);
             this.panel2.Controls.Add(this.autopaletteCheckBox);
+            this.panel2.Controls.Add(this.importTilesetFilesBtn);
+            this.panel2.Controls.Add(this.exportTilesetFilesBtn);
             this.panel2.Controls.Add(this.importAllBtn);
             this.panel2.Controls.Add(this.saveAllBtn);
             this.panel2.Controls.Add(this.exportAllBtn);
@@ -243,7 +247,7 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel2.Location = new System.Drawing.Point(0, 322);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(249, 186);
+            this.panel2.Size = new System.Drawing.Size(249, 244);
             this.panel2.TabIndex = 5;
             // 
             // removeBitmapBtn
@@ -261,7 +265,7 @@
             this.autopaletteCheckBox.AutoSize = true;
             this.autopaletteCheckBox.Checked = true;
             this.autopaletteCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.autopaletteCheckBox.Location = new System.Drawing.Point(6, 159);
+            this.autopaletteCheckBox.Location = new System.Drawing.Point(6, 217);
             this.autopaletteCheckBox.Name = "autopaletteCheckBox";
             this.autopaletteCheckBox.Size = new System.Drawing.Size(126, 17);
             this.autopaletteCheckBox.TabIndex = 3;
@@ -277,6 +281,26 @@
             this.importAllBtn.Text = "<Import all bitmaps with all palettes>";
             this.importAllBtn.UseVisualStyleBackColor = true;
             this.importAllBtn.Click += new System.EventHandler(this.importAllBtn_Click);
+            // 
+            // exportTilesetFilesBtn
+            // 
+            this.exportTilesetFilesBtn.Location = new System.Drawing.Point(3, 159);
+            this.exportTilesetFilesBtn.Name = "exportTilesetFilesBtn";
+            this.exportTilesetFilesBtn.Size = new System.Drawing.Size(237, 23);
+            this.exportTilesetFilesBtn.TabIndex = 0;
+            this.exportTilesetFilesBtn.Text = "<Export tileset NCG/NCL files>";
+            this.exportTilesetFilesBtn.UseVisualStyleBackColor = true;
+            this.exportTilesetFilesBtn.Click += new System.EventHandler(this.exportTilesetFilesBtn_Click);
+            // 
+            // importTilesetFilesBtn
+            // 
+            this.importTilesetFilesBtn.Location = new System.Drawing.Point(3, 188);
+            this.importTilesetFilesBtn.Name = "importTilesetFilesBtn";
+            this.importTilesetFilesBtn.Size = new System.Drawing.Size(237, 23);
+            this.importTilesetFilesBtn.TabIndex = 0;
+            this.importTilesetFilesBtn.Text = "<Import tileset NCG/NCL files>";
+            this.importTilesetFilesBtn.UseVisualStyleBackColor = true;
+            this.importTilesetFilesBtn.Click += new System.EventHandler(this.importTilesetFilesBtn_Click);
             // 
             // saveAllBtn
             // 
@@ -388,5 +412,7 @@
         private System.Windows.Forms.Button importThisWithPalBtn;
         private System.Windows.Forms.CheckBox autopaletteCheckBox;
         private System.Windows.Forms.Button removeBitmapBtn;
+        private System.Windows.Forms.Button exportTilesetFilesBtn;
+        private System.Windows.Forms.Button importTilesetFilesBtn;
     }
 }
