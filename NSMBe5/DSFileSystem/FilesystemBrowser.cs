@@ -30,6 +30,35 @@ namespace NSMBe5.DSFileSystem
 {
     public partial class FilesystemBrowser : UserControl
     {
+        private const string AllFileTypesFilter = "All Types";
+        private static readonly string[] FileTypeFilters = new string[]
+        {
+            AllFileTypesFilter,
+            "NARC",
+            "NCGR",
+            "NCLR",
+            "NSCR",
+            "BMD0",
+            "BTX0",
+            "SDAT",
+            "NCG",
+            "NCL",
+            "NSC",
+            "ENPG",
+            "BCA0",
+            "BTP0",
+            "BTA0",
+            "BMA0",
+            "BVA0",
+            "BMG",
+            "SPA",
+            "BNBL",
+            "BNCL",
+            "BNCD",
+            "BANNER",
+            "Unknown File"
+        };
+
         private Filesystem fs;
 
         public FilesystemBrowser()
@@ -45,6 +74,9 @@ namespace NSMBe5.DSFileSystem
 
             fileTreeView.ImageList = new ImageList();
             fileTreeView.ImageList.ColorDepth = ColorDepth.Depth32Bit;
+
+            fileTypeFilterComboBox.Items.AddRange(FileTypeFilters);
+            fileTypeFilterComboBox.SelectedIndex = 0;
 
             for(int i = 0; i < 4; i++)
             {
@@ -110,6 +142,11 @@ namespace NSMBe5.DSFileSystem
             RefreshTreeFromSearch();
         }
 
+        private void fileTypeFilterComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            RefreshTreeFromSearch();
+        }
+
         private void RefreshTreeFromSearch()
         {
             fileTreeView.Nodes.Clear();
@@ -121,8 +158,10 @@ namespace NSMBe5.DSFileSystem
             }
 
             string query = searchTextBox.Text.Trim();
+            string typeFilter = fileTypeFilterComboBox.SelectedItem as string ?? AllFileTypesFilter;
+            bool hasTypeFilter = !string.Equals(typeFilter, AllFileTypesFilter, StringComparison.Ordinal);
 
-            if (query.Length == 0)
+            if (query.Length == 0 && !hasTypeFilter)
             {
                 TreeNode main = new TreeNode(fs.mainDir.name, 0, 0);
                 main.Tag = fs.mainDir;
@@ -133,7 +172,7 @@ namespace NSMBe5.DSFileSystem
                 return;
             }
 
-            TreeNode filteredMain = loadDirFiltered(fs.mainDir, query);
+            TreeNode filteredMain = loadDirFiltered(fs.mainDir, query, typeFilter);
             if (filteredMain != null)
             {
                 fileTreeView.Nodes.Add(filteredMain);
@@ -143,16 +182,21 @@ namespace NSMBe5.DSFileSystem
             UpdateFileInfo();
         }
 
-        private TreeNode loadDirFiltered(Directory dir, string query)
+        private TreeNode loadDirFiltered(Directory dir, string query, string typeFilter)
         {
             TreeNode dirNode = new TreeNode(dir.name, 0, 0);
             dirNode.Tag = dir;
 
-            bool dirMatches = dir.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
+            bool hasQuery = query.Length > 0;
+            bool hasTypeFilter = !string.Equals(typeFilter, AllFileTypesFilter, StringComparison.Ordinal);
+            bool dirMatches = hasQuery && dir.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0;
 
             foreach (File f in dir.childrenFiles)
             {
-                if (f.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0)
+                if (hasQuery && f.name.IndexOf(query, StringComparison.OrdinalIgnoreCase) < 0)
+                    continue;
+
+                if (hasTypeFilter && !string.Equals(getFileTypeForFile(f), typeFilter, StringComparison.Ordinal))
                     continue;
 
                 int ic = getIconForFile(f);
@@ -163,7 +207,7 @@ namespace NSMBe5.DSFileSystem
 
             foreach (Directory subDir in dir.childrenDirs)
             {
-                TreeNode childNode = loadDirFiltered(subDir, query);
+                TreeNode childNode = loadDirFiltered(subDir, query, typeFilter);
                 if (childNode != null)
                     dirNode.Nodes.Add(childNode);
             }

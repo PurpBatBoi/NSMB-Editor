@@ -43,6 +43,7 @@
             this.extractDirectoryDialog = new System.Windows.Forms.FolderBrowserDialog();
             this.searchPanel = new System.Windows.Forms.Panel();
             this.clearSearchButton = new System.Windows.Forms.Button();
+            this.fileTypeFilterComboBox = new System.Windows.Forms.ComboBox();
             this.searchTextBox = new System.Windows.Forms.TextBox();
             this.searchLabel = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
@@ -176,6 +177,7 @@
             // searchPanel
             // 
             this.searchPanel.Controls.Add(this.clearSearchButton);
+            this.searchPanel.Controls.Add(this.fileTypeFilterComboBox);
             this.searchPanel.Controls.Add(this.searchTextBox);
             this.searchPanel.Controls.Add(this.searchLabel);
             this.searchPanel.Dock = System.Windows.Forms.DockStyle.Top;
@@ -197,6 +199,18 @@
             this.clearSearchButton.UseVisualStyleBackColor = true;
             this.clearSearchButton.Click += new System.EventHandler(this.clearSearchButton_Click);
             // 
+            // fileTypeFilterComboBox
+            // 
+            this.fileTypeFilterComboBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.fileTypeFilterComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.fileTypeFilterComboBox.FormattingEnabled = true;
+            this.fileTypeFilterComboBox.Location = new System.Drawing.Point(487, 4);
+            this.fileTypeFilterComboBox.Margin = new System.Windows.Forms.Padding(4);
+            this.fileTypeFilterComboBox.Name = "fileTypeFilterComboBox";
+            this.fileTypeFilterComboBox.Size = new System.Drawing.Size(124, 24);
+            this.fileTypeFilterComboBox.TabIndex = 3;
+            this.fileTypeFilterComboBox.SelectedIndexChanged += new System.EventHandler(this.fileTypeFilterComboBox_SelectedIndexChanged);
+            // 
             // searchTextBox
             // 
             this.searchTextBox.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
@@ -204,7 +218,7 @@
             this.searchTextBox.Location = new System.Drawing.Point(66, 4);
             this.searchTextBox.Margin = new System.Windows.Forms.Padding(4);
             this.searchTextBox.Name = "searchTextBox";
-            this.searchTextBox.Size = new System.Drawing.Size(545, 22);
+            this.searchTextBox.Size = new System.Drawing.Size(413, 22);
             this.searchTextBox.TabIndex = 1;
             this.searchTextBox.TextChanged += new System.EventHandler(this.searchTextBox_TextChanged);
             // 
@@ -253,6 +267,7 @@
         private System.Windows.Forms.FolderBrowserDialog extractDirectoryDialog;
         private System.Windows.Forms.Panel searchPanel;
         private System.Windows.Forms.Button clearSearchButton;
+        private System.Windows.Forms.ComboBox fileTypeFilterComboBox;
         private System.Windows.Forms.TextBox searchTextBox;
         private System.Windows.Forms.Label searchLabel;
     }

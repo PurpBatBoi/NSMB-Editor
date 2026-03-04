@@ -137,6 +137,23 @@ namespace NSMBe5
 
 		private void DrawingArea_MouseWheel(object sender, MouseEventArgs e)
 		{
+			if (Control.ModifierKeys == Keys.Control)
+			{
+				// Preserve the world-space point under the cursor while stepping zoom presets.
+				float worldX = (e.X / zoom) + ViewablePixels.X;
+				float worldY = (e.Y / zoom) + ViewablePixels.Y;
+
+				if (e.Delta > 0)
+					editor.zoomIn();
+				else if (e.Delta < 0)
+					editor.zoomOut();
+
+				int newScrollX = (int)(worldX * zoom - e.X);
+				int newScrollY = (int)(worldY * zoom - e.Y);
+				ScrollEditorPixel(new Point(newScrollX, newScrollY));
+				return;
+			}
+
 			if (Control.ModifierKeys == Keys.Shift)
 				ScrollEditorPixel(new Point((int)(ViewablePixels.X * zoom - e.Delta / 4), (int)(ViewablePixels.Y * zoom)));
 			else
