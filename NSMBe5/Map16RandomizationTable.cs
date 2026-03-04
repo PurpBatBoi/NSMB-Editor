@@ -4,7 +4,7 @@ namespace NSMBe5
 {
     internal static class Map16RandomizationTable
     {
-        // Mapping sourced from runtime randomization table behavior for tileset IDs.
+        // Mapping sourced from nsmbcentral
         // Entries are encoded as start/end pairs (inclusive).
         private static readonly Dictionary<int, int[]> RandomizationRangesByTileset = new Dictionary<int, int[]>
         {
