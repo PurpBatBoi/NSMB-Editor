@@ -25,12 +25,19 @@ A feature-rich editor for **New Super Mario Bros. (Nintendo DS)** ROM hacking.
   - Object editor zoom for editable canvas and Map16 tile picker.
   - Tile behavior preview zoom controls in the Tileset Editor.
   - Pixel-art rendering fixes (nearest-neighbor scaling where applicable).
+- Level editor spriteset and snapping improvements:
+  - Yellow dependency warning outline for Swinging/able Vine objects when vine spriteset are valid but Rope spriteset are not set.
+  - Configurable snap-size presets (`1/2/4/8/16`) with persisted setting in the Level Editor toolbar.
 - Graphics tab quality-of-life:
   - `Remove Selected Bitmap` button.
   - Right-clicking a bitmap focuses that file in the ROM File Browser.
 - New direct file import workflows:
   - Direct **Tileset** file importing from the Graphics editor.
   - Direct **Background** file importing from the Tilemap editor.
+- Map16 randomization overlays:
+  - Runtime-table-based randomization tile highlighting in Tileset Editor.
+  - Separate toolbar toggles for Map16 canvas overlay and tile-picker overlay.
+  - Outline color picker for randomization highlights with persisted color setting.
 - Ongoing language updates (including French strings for newer UI options).
 
 ## Building

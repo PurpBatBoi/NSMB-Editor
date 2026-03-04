@@ -54,6 +54,11 @@ namespace NSMBe5
 
         public bool allowsRectangle = true;
         public bool allowNoTile = true;
+        private readonly HashSet<int> highlightedTiles = new HashSet<int>();
+        private bool showHighlightedTiles = false;
+        private Color highlightOutlineColor = Color.FromArgb(220, 255, 200, 0);
+        private const float HighlightOutlineWidth = 2.0f;
+        private const int HighlightFillAlpha = 96;
 
         public TilePicker()
         {
@@ -96,6 +101,36 @@ namespace NSMBe5
         {
         }
 
+        public void SetHighlightTiles(IEnumerable<int> tileNumbers)
+        {
+            highlightedTiles.Clear();
+            if (tileNumbers != null)
+            {
+                foreach (int tileNumber in tileNumbers)
+                {
+                    if (tileNumber >= 0)
+                        highlightedTiles.Add(tileNumber);
+                }
+            }
+
+            pictureBox1.Invalidate(true);
+        }
+
+        public void SetHighlightVisible(bool visible)
+        {
+            if (showHighlightedTiles == visible)
+                return;
+
+            showHighlightedTiles = visible;
+            pictureBox1.Invalidate(true);
+        }
+
+        public void SetHighlightOutlineColor(Color color)
+        {
+            highlightOutlineColor = color;
+            pictureBox1.Invalidate(true);
+        }
+
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
             if (buffers == null)
@@ -108,6 +143,39 @@ namespace NSMBe5
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
             for (int i = 0; i < bufferCount; i++)
                 e.Graphics.DrawImage(buffers[i], 0, i * bufferHeight * tileSize, bufferWidth * tileSize, bufferHeight * tileSize);
+
+            if (showHighlightedTiles && highlightedTiles.Count > 0)
+            {
+                using (Pen highlightPen = new Pen(highlightOutlineColor, HighlightOutlineWidth))
+                using (SolidBrush highlightBrush = new SolidBrush(Color.FromArgb(HighlightFillAlpha, highlightOutlineColor.R, highlightOutlineColor.G, highlightOutlineColor.B)))
+                {
+                    foreach (int tileNumber in highlightedTiles)
+                    {
+                        int tx = tileNumber % bufferWidth;
+                        int ty = tileNumber / bufferWidth;
+                        if (tx < 0 || tx >= bufferWidth || ty < 0 || ty >= bufferHeight)
+                            continue;
+
+                        if ((tx & 1) == 0 && (ty & 1) == 0)
+                        {
+                            int right = tileNumber + 1;
+                            int bottom = tileNumber + bufferWidth;
+                            int bottomRight = bottom + 1;
+                            if (highlightedTiles.Contains(right) && highlightedTiles.Contains(bottom) && highlightedTiles.Contains(bottomRight))
+                            {
+                                for (int pal = 0; pal < bufferCount; pal++)
+                                {
+                                    int drawX = tx * tileSize;
+                                    int drawY = (ty + pal * bufferHeight) * tileSize;
+                                    Rectangle map16Rect = new Rectangle(drawX, drawY, tileSize * 2, tileSize * 2);
+                                    e.Graphics.FillRectangle(highlightBrush, map16Rect);
+                                    e.Graphics.DrawRectangle(highlightPen, map16Rect.X, map16Rect.Y, map16Rect.Width - 1, map16Rect.Height - 1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             e.Graphics.DrawRectangle(Pens.White,
                 (selTileNum % bufferWidth) * tileSize, (selTileNum / bufferWidth + selTilePal * bufferHeight) * tileSize,

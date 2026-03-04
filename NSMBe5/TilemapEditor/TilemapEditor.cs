@@ -36,6 +36,14 @@ namespace NSMBe5.TilemapEditor
         private DSFile backgroundGraphicsFile;
         private DSFile backgroundPaletteFile;
         private DSFile backgroundLayoutFile;
+        private ToolStripButton randomizationCanvasButton;
+        private ToolStripButton randomizationPickerButton;
+        private ToolStripButton randomizationColorButton;
+        private HashSet<int> canvasRandomizationTiles = new HashSet<int>();
+        private HashSet<int> pickerRandomizationTiles = new HashSet<int>();
+        private bool canvasRandomizationVisible;
+        private bool pickerRandomizationVisible;
+        private Color randomizationOutlineColor = Color.FromArgb(220, 255, 200, 0);
         private GroupBox backgroundFilesGroup;
         private Label graphicsFileLabel;
         private Label paletteFileLabel;
@@ -52,6 +60,10 @@ namespace NSMBe5.TilemapEditor
             InitializeBackgroundInfoPanel();
             UpdateZoomButtons();
         }
+
+        public event Action<bool> CanvasRandomizationVisibilityChanged;
+        public event Action<bool> PickerRandomizationVisibilityChanged;
+        public event Action<Color> RandomizationOutlineColorChanged;
 
         public void load(Tilemap t)
         {
@@ -87,6 +99,104 @@ namespace NSMBe5.TilemapEditor
         public void setMode(TilemapEditorControl.EditionMode mode)
         {
             buttons[(int)mode].PerformClick();
+        }
+
+        public void ConfigureRandomizationToggleButtons(bool canvasVisible, bool pickerVisible, Color outlineColor, string canvasText, string pickerText, string colorText)
+        {
+            EnsureRandomizationButtons();
+            randomizationCanvasButton.Text = canvasText;
+            randomizationCanvasButton.Checked = canvasVisible;
+            randomizationPickerButton.Text = pickerText;
+            randomizationPickerButton.Checked = pickerVisible;
+            randomizationColorButton.Text = colorText;
+
+            canvasRandomizationVisible = canvasVisible;
+            pickerRandomizationVisible = pickerVisible;
+            randomizationOutlineColor = outlineColor;
+            tilemapEditorControl1.SetHighlightOutlineColor(randomizationOutlineColor);
+            tilePicker1.SetHighlightOutlineColor(randomizationOutlineColor);
+        }
+
+        private void EnsureRandomizationButtons()
+        {
+            if (randomizationCanvasButton != null && randomizationPickerButton != null && randomizationColorButton != null)
+                return;
+
+            randomizationCanvasButton = new ToolStripButton();
+            randomizationCanvasButton.CheckOnClick = true;
+            randomizationCanvasButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            randomizationCanvasButton.Name = "randomizationCanvasButton";
+            randomizationCanvasButton.Click += randomizationCanvasButton_Click;
+
+            randomizationPickerButton = new ToolStripButton();
+            randomizationPickerButton.CheckOnClick = true;
+            randomizationPickerButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            randomizationPickerButton.Name = "randomizationPickerButton";
+            randomizationPickerButton.Click += randomizationPickerButton_Click;
+
+            randomizationColorButton = new ToolStripButton();
+            randomizationColorButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            randomizationColorButton.Name = "randomizationColorButton";
+            randomizationColorButton.Click += randomizationColorButton_Click;
+
+            toolStrip1.Items.Add(new ToolStripSeparator());
+            toolStrip1.Items.Add(randomizationCanvasButton);
+            toolStrip1.Items.Add(randomizationPickerButton);
+            toolStrip1.Items.Add(randomizationColorButton);
+        }
+
+        private void randomizationCanvasButton_Click(object sender, EventArgs e)
+        {
+            canvasRandomizationVisible = randomizationCanvasButton.Checked;
+            tilemapEditorControl1.SetHighlightVisible(canvasRandomizationVisible);
+            CanvasRandomizationVisibilityChanged?.Invoke(canvasRandomizationVisible);
+        }
+
+        private void randomizationPickerButton_Click(object sender, EventArgs e)
+        {
+            pickerRandomizationVisible = randomizationPickerButton.Checked;
+            tilePicker1.SetHighlightVisible(pickerRandomizationVisible);
+            PickerRandomizationVisibilityChanged?.Invoke(pickerRandomizationVisible);
+        }
+
+        private void randomizationColorButton_Click(object sender, EventArgs e)
+        {
+            using (ColorDialog dlg = new ColorDialog())
+            {
+                dlg.AllowFullOpen = true;
+                dlg.FullOpen = true;
+                dlg.Color = randomizationOutlineColor;
+
+                if (dlg.ShowDialog() != DialogResult.OK)
+                    return;
+
+                randomizationOutlineColor = dlg.Color;
+                tilemapEditorControl1.SetHighlightOutlineColor(randomizationOutlineColor);
+                tilePicker1.SetHighlightOutlineColor(randomizationOutlineColor);
+                RandomizationOutlineColorChanged?.Invoke(randomizationOutlineColor);
+            }
+        }
+
+        public void SetCanvasRandomizationOverlay(IEnumerable<int> tileNumbers, bool visible)
+        {
+            canvasRandomizationTiles = tileNumbers == null ? new HashSet<int>() : new HashSet<int>(tileNumbers);
+            canvasRandomizationVisible = visible;
+            tilemapEditorControl1.SetHighlightTiles(canvasRandomizationTiles);
+            tilemapEditorControl1.SetHighlightVisible(canvasRandomizationVisible);
+
+            if (randomizationCanvasButton != null)
+                randomizationCanvasButton.Checked = canvasRandomizationVisible;
+        }
+
+        public void SetPickerRandomizationOverlay(IEnumerable<int> tileNumbers, bool visible)
+        {
+            pickerRandomizationTiles = tileNumbers == null ? new HashSet<int>() : new HashSet<int>(tileNumbers);
+            pickerRandomizationVisible = visible;
+            tilePicker1.SetHighlightTiles(pickerRandomizationTiles);
+            tilePicker1.SetHighlightVisible(pickerRandomizationVisible);
+
+            if (randomizationPickerButton != null)
+                randomizationPickerButton.Checked = pickerRandomizationVisible;
         }
 
         private void uncheckButtons()

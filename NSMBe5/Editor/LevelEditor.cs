@@ -22,6 +22,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using System.Linq;
 using NSMBe5.DSFileSystem;
 
 
@@ -29,6 +30,8 @@ namespace NSMBe5 {
     public partial class LevelEditor : Form {
 
         public ObjectsEditionMode oem;
+        private readonly int[] snapSizeOptions = new int[] { 1, 2, 4, 8, 16 };
+        private ToolStripDropDownButton snapSizeButton;
 
         public BackgroundDragEditionMode bgdragem;
 
@@ -65,6 +68,8 @@ namespace NSMBe5 {
             removeBgButton.Text = LanguageManager.Get("LevelEditor", "removeBgButton");
             moveBGToolStripMenuItem.Text = LanguageManager.Get("LevelEditor", "moveBGToolStripMenuItem");
             openImage.Filter = LanguageManager.Get("Filters", "image");
+            InitialiseSnapSizeButton();
+            snapSizeButton.ToolTipText = LanguageManager.Get("LevelEditor", "snapSizeTooltip");
 
             levelEditorControl1.LoadUndoManager(undoButton, redoButton);
 
@@ -73,6 +78,9 @@ namespace NSMBe5 {
 
             oem = new ObjectsEditionMode(Level, levelEditorControl1);
             bgdragem = new BackgroundDragEditionMode(Level, levelEditorControl1);
+            oem.snapEnabled = snapToggleButton.Checked;
+            oem.configuredSnapSize = SanitizeSnapSize(Properties.Settings.Default.LevelEditorSnapSize);
+            UpdateSnapSizeChecks();
 
             levelEditorControl1.SetEditionMode(oem);
             levelEditorControl1.minimapctrl = minimapControl1;
@@ -315,8 +323,9 @@ namespace NSMBe5 {
 
         private void snapToggleButton_Click(object sender, EventArgs e)
         {
-            oem.snapTo8Pixels = snapToggleButton.Checked;
+            oem.snapEnabled = snapToggleButton.Checked;
             oem.UpdateSelectionBounds();
+            levelEditorControl1.repaint();
         }
 
         private void showGridButton_Click(object sender, EventArgs e)
@@ -407,6 +416,65 @@ namespace NSMBe5 {
         private void ExtraDataBtn_Click(object sender, EventArgs e)
         {
             new ExtraDataEditor(this.levelEditorControl1).ShowDialog();
+        }
+
+        private void InitialiseSnapSizeButton()
+        {
+            snapSizeButton = new ToolStripDropDownButton();
+            snapSizeButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            snapSizeButton.Name = "snapSizeButton";
+            snapSizeButton.Text = LanguageManager.Get("LevelEditor", "snapSizeLabel");
+
+            foreach (int snapSize in snapSizeOptions)
+            {
+                ToolStripMenuItem item = new ToolStripMenuItem();
+                item.Tag = snapSize;
+                item.Text = string.Format(LanguageManager.Get("LevelEditor", "snapSizeOption"), snapSize);
+                item.Click += snapSizeMenuItem_Click;
+                snapSizeButton.DropDownItems.Add(item);
+            }
+
+            int insertIndex = toolStrip1.Items.IndexOf(snapToggleButton);
+            if (insertIndex < 0)
+                toolStrip1.Items.Add(snapSizeButton);
+            else
+                toolStrip1.Items.Insert(insertIndex + 1, snapSizeButton);
+        }
+
+        private void snapSizeMenuItem_Click(object sender, EventArgs e)
+        {
+            ToolStripMenuItem item = sender as ToolStripMenuItem;
+            if (item == null || item.Tag == null)
+                return;
+
+            int snapSize = SanitizeSnapSize((int)item.Tag);
+            oem.configuredSnapSize = snapSize;
+            Properties.Settings.Default.LevelEditorSnapSize = snapSize;
+            Properties.Settings.Default.Save();
+            oem.UpdateSelectionBounds();
+            levelEditorControl1.repaint();
+            UpdateSnapSizeChecks();
+        }
+
+        private void UpdateSnapSizeChecks()
+        {
+            if (snapSizeButton == null)
+                return;
+
+            int currentSnapSize = SanitizeSnapSize(oem == null ? Properties.Settings.Default.LevelEditorSnapSize : oem.configuredSnapSize);
+
+            foreach (ToolStripMenuItem item in snapSizeButton.DropDownItems.OfType<ToolStripMenuItem>())
+                item.Checked = (int)item.Tag == currentSnapSize;
+
+            snapSizeButton.Text = string.Format(LanguageManager.Get("LevelEditor", "snapSizeLabelValue"), currentSnapSize);
+        }
+
+        private int SanitizeSnapSize(int snapSize)
+        {
+            if (!snapSizeOptions.Contains(snapSize))
+                return 8;
+
+            return snapSize;
         }
     }
 }

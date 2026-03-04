@@ -22,6 +22,10 @@ namespace NSMBe5.Configuration
         public bool EnableRomPlugin { get; set; } = false;
         public string EnabledPlugins { get; set; } = "";
         public string RecentFiles { get; set; } = "";
+        public int LevelEditorSnapSize { get; set; } = 8;
+        public bool ShowMap16RandomizationHighlight { get; set; } = true;
+        public bool ShowMap16RandomizationHighlightPicker { get; set; } = false;
+        public int Map16RandomizationOutlineColorArgb { get; set; } = -3604481;
 
         /// <summary>
         /// Creates a new instance with default values

@@ -33,6 +33,8 @@ namespace NSMBe5
 		private NSMBLevel Level;
 
 		private static SolidBrush invalidBrush = new SolidBrush(Color.FromArgb(100, 255, 0, 0));
+		private static Pen vineDependencyShadowPen = new Pen(Color.Black);
+		private static Pen vineDependencyWarningPen = new Pen(Color.Yellow);
 		public int x { get { return GetGrabBounds().X; } set { X += (value - GetGrabBounds().X) / snap; } }
 		public int y { get { return GetGrabBounds().Y; } set { Y += (value - GetGrabBounds().Y) / snap; } }
 		public int width { get { return GetGrabBounds().Width; } set { } }
@@ -1270,6 +1272,7 @@ namespace NSMBe5
 				{
 					obj.Render(this, g, ed, RenderX, RenderY, ref customRendered);
 					renderCustomInvalidSprite();
+					RenderVineDependencyWarning(g);
 					return;
 				}
 			}
@@ -3198,9 +3201,39 @@ namespace NSMBe5
 			}
 
 			renderCustomInvalidSprite();
+			RenderVineDependencyWarning(g);
 
 			//I dunno what's this user for. ~Dirbaio
 			//            return customRendered;
+		}
+
+		private bool ShouldRenderVineDependencyWarning()
+		{
+			if (ObjectID != 197)
+				return false;
+
+			if (!SpriteRequirementResolver.IsAnyRequiredBankSatisfied(Level, 197))
+				return false;
+
+			System.Collections.Generic.IReadOnlyList<SpriteBankRequirement> ropeRequirements = SpriteRequirementResolver.GetRequiredBanksForObjectId(196);
+			if (ropeRequirements.Count == 0)
+				return false;
+
+			return !SpriteRequirementResolver.IsAnyRequiredBankSatisfied(Level, 196);
+		}
+
+		private void RenderVineDependencyWarning(Graphics g)
+		{
+			if (!ShouldRenderVineDependencyWarning())
+				return;
+
+			Rectangle warningBounds = GetGrabBounds();
+			warningBounds.Inflate(1, 1);
+
+			Rectangle shadowBounds = warningBounds;
+			shadowBounds.Offset(1, 1);
+			g.DrawRectangle(vineDependencyShadowPen, shadowBounds);
+			g.DrawRectangle(vineDependencyWarningPen, warningBounds);
 		}
 
 		private Bitmap GetLiquidTexture()

@@ -74,6 +74,17 @@ namespace NSMBe5
 
             tilesetObjectEditor1.load(g, TilesetNumber);
             tilemapEditor1.load(t.map16);
+            tilemapEditor1.ConfigureRandomizationToggleButtons(
+                Properties.Settings.Default.ShowMap16RandomizationHighlight,
+                Properties.Settings.Default.ShowMap16RandomizationHighlightPicker,
+                Color.FromArgb(Properties.Settings.Default.Map16RandomizationOutlineColorArgb),
+                LanguageManager.Get("TilesetEditor", "showRandomizationTilesCanvas"),
+                LanguageManager.Get("TilesetEditor", "showRandomizationTilesPicker"),
+                LanguageManager.Get("TilesetEditor", "randomizationOutlineColor"));
+            tilemapEditor1.CanvasRandomizationVisibilityChanged += tilemapEditor1_CanvasRandomizationVisibilityChanged;
+            tilemapEditor1.PickerRandomizationVisibilityChanged += tilemapEditor1_PickerRandomizationVisibilityChanged;
+            tilemapEditor1.RandomizationOutlineColorChanged += tilemapEditor1_RandomizationOutlineColorChanged;
+            ApplyMap16RandomizationOverlay();
 
             imageManager1.addImage(t.graphics);
 
@@ -300,6 +311,101 @@ namespace NSMBe5
         private void imageManager1_SomethingSaved()
         {
             mustRepaintObjects();
+        }
+
+        private void tilemapEditor1_CanvasRandomizationVisibilityChanged(bool visible)
+        {
+            Properties.Settings.Default.ShowMap16RandomizationHighlight = visible;
+            Properties.Settings.Default.Save();
+        }
+
+        private void tilemapEditor1_PickerRandomizationVisibilityChanged(bool visible)
+        {
+            Properties.Settings.Default.ShowMap16RandomizationHighlightPicker = visible;
+            Properties.Settings.Default.Save();
+        }
+
+        private void tilemapEditor1_RandomizationOutlineColorChanged(Color color)
+        {
+            Properties.Settings.Default.Map16RandomizationOutlineColorArgb = color.ToArgb();
+            Properties.Settings.Default.Save();
+        }
+
+        private void ApplyMap16RandomizationOverlay()
+        {
+            int tileCount = t.map16.getMap16TileCount();
+            HashSet<int> randomizationTiles = Map16RandomizationTable.GetRandomizedTiles(TilesetID, tileCount);
+            HashSet<int> canvasTiles8x8 = ExpandMap16TilesTo8x8Layout(randomizationTiles);
+            HashSet<int> pickerTiles = BuildPickerTileHighlights(randomizationTiles);
+
+            tilemapEditor1.SetCanvasRandomizationOverlay(canvasTiles8x8, Properties.Settings.Default.ShowMap16RandomizationHighlight);
+            tilemapEditor1.SetPickerRandomizationOverlay(pickerTiles, Properties.Settings.Default.ShowMap16RandomizationHighlightPicker);
+        }
+
+        private HashSet<int> ExpandMap16TilesTo8x8Layout(HashSet<int> map16Tiles)
+        {
+            HashSet<int> output = new HashSet<int>();
+            if (map16Tiles == null || map16Tiles.Count == 0)
+                return output;
+
+            int width8x8 = t.map16.width;
+            int map16Width = width8x8 / 2;
+            if (map16Width <= 0)
+                return output;
+
+            foreach (int map16Tile in map16Tiles)
+            {
+                int map16X = map16Tile % map16Width;
+                int map16Y = map16Tile / map16Width;
+                int baseX = map16X * 2;
+                int baseY = map16Y * 2;
+
+                int topLeft = baseY * width8x8 + baseX;
+                output.Add(topLeft);
+                output.Add(topLeft + 1);
+                output.Add(topLeft + width8x8);
+                output.Add(topLeft + width8x8 + 1);
+            }
+
+            return output;
+        }
+
+        private HashSet<int> BuildPickerTileHighlights(HashSet<int> map16Tiles)
+        {
+            HashSet<int> pickerTiles = new HashSet<int>();
+            if (map16Tiles == null || map16Tiles.Count == 0)
+                return pickerTiles;
+
+            int width8x8 = t.map16.width;
+            int map16Width = width8x8 / 2;
+            int height8x8 = t.map16.height;
+            if (map16Width <= 0)
+                return pickerTiles;
+
+            foreach (int map16Tile in map16Tiles)
+            {
+                int map16X = map16Tile % map16Width;
+                int map16Y = map16Tile / map16Width;
+                int baseX = map16X * 2;
+                int baseY = map16Y * 2;
+
+                for (int dy = 0; dy < 2; dy++)
+                {
+                    for (int dx = 0; dx < 2; dx++)
+                    {
+                        int x = baseX + dx;
+                        int y = baseY + dy;
+                        if (x < 0 || x >= width8x8 || y < 0 || y >= height8x8)
+                            continue;
+
+                        int tileNum = t.map16.tiles[x, y].tileNum;
+                        if (tileNum >= 0)
+                            pickerTiles.Add(tileNum);
+                    }
+                }
+            }
+
+            return pickerTiles;
         }
     }
 }

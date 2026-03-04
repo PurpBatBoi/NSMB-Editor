@@ -271,6 +271,7 @@
     <Compile Include="NSMBEntrance.cs" />
     <Compile Include="NSMBGraphics.cs" />
     <Compile Include="NSMBLevel.cs" />
+    <Compile Include="Map16RandomizationTable.cs" />
     <Compile Include="NSMBTile.cs" />
     <Compile Include="NSMBPath.cs" />
     <Compile Include="NSMBPathPoint.cs" />

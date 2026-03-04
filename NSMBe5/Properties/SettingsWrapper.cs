@@ -103,6 +103,30 @@ namespace NSMBe5.Properties
             set => ConfigurationManager.Settings.RecentFiles = value;
         }
 
+        public int LevelEditorSnapSize
+        {
+            get => ConfigurationManager.Settings.LevelEditorSnapSize;
+            set => ConfigurationManager.Settings.LevelEditorSnapSize = value;
+        }
+
+        public bool ShowMap16RandomizationHighlight
+        {
+            get => ConfigurationManager.Settings.ShowMap16RandomizationHighlight;
+            set => ConfigurationManager.Settings.ShowMap16RandomizationHighlight = value;
+        }
+
+        public bool ShowMap16RandomizationHighlightPicker
+        {
+            get => ConfigurationManager.Settings.ShowMap16RandomizationHighlightPicker;
+            set => ConfigurationManager.Settings.ShowMap16RandomizationHighlightPicker = value;
+        }
+
+        public int Map16RandomizationOutlineColorArgb
+        {
+            get => ConfigurationManager.Settings.Map16RandomizationOutlineColorArgb;
+            set => ConfigurationManager.Settings.Map16RandomizationOutlineColorArgb = value;
+        }
+
         /// <summary>
         /// Saves the current settings
         /// </summary>

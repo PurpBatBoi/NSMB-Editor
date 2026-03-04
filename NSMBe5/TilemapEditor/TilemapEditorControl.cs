@@ -57,6 +57,11 @@ namespace NSMBe5
         public Stack<TilemapUndoEntry> RActions = new Stack<TilemapUndoEntry>();
 
         public bool showGrid = false;
+        private readonly HashSet<int> highlightedTiles = new HashSet<int>();
+        private bool showHighlightedTiles = false;
+        private Color highlightOutlineColor = Color.FromArgb(220, 255, 200, 0);
+        private const float HighlightOutlineWidth = 2.0f;
+        private const int HighlightFillAlpha = 96;
 
         public enum EditionMode
         {
@@ -74,6 +79,36 @@ namespace NSMBe5
         {
             InitializeComponent();
             this.SetStyle(ControlStyles.Selectable, true);
+        }
+
+        public void SetHighlightTiles(IEnumerable<int> tileNumbers)
+        {
+            highlightedTiles.Clear();
+            if (tileNumbers != null)
+            {
+                foreach (int tileNumber in tileNumbers)
+                {
+                    if (tileNumber >= 0)
+                        highlightedTiles.Add(tileNumber);
+                }
+            }
+
+            pictureBox1.Invalidate(true);
+        }
+
+        public void SetHighlightVisible(bool visible)
+        {
+            if (showHighlightedTiles == visible)
+                return;
+
+            showHighlightedTiles = visible;
+            pictureBox1.Invalidate(true);
+        }
+
+        public void SetHighlightOutlineColor(Color color)
+        {
+            highlightOutlineColor = color;
+            pictureBox1.Invalidate(true);
         }
 
         public void load(Tilemap t)
@@ -179,6 +214,34 @@ namespace NSMBe5
             e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
             e.Graphics.DrawImage(t.buffer, 0, 0, bufferWidth * tileSize, bufferHeight * tileSize);
+
+            if (showHighlightedTiles && highlightedTiles.Count > 0)
+            {
+                using (Pen highlightPen = new Pen(highlightOutlineColor, HighlightOutlineWidth))
+                using (SolidBrush highlightBrush = new SolidBrush(Color.FromArgb(HighlightFillAlpha, highlightOutlineColor.R, highlightOutlineColor.G, highlightOutlineColor.B)))
+                {
+                    foreach (int tileNumber in highlightedTiles)
+                    {
+                        int tx = tileNumber % bufferWidth;
+                        int ty = tileNumber / bufferWidth;
+                        if (tx < 0 || tx >= bufferWidth || ty < 0 || ty >= bufferHeight)
+                            continue;
+
+                        if ((tx & 1) == 0 && (ty & 1) == 0)
+                        {
+                            int right = tileNumber + 1;
+                            int bottom = tileNumber + bufferWidth;
+                            int bottomRight = bottom + 1;
+                            if (highlightedTiles.Contains(right) && highlightedTiles.Contains(bottom) && highlightedTiles.Contains(bottomRight))
+                            {
+                                Rectangle map16Rect = new Rectangle(tx * tileSize, ty * tileSize, tileSize * 2, tileSize * 2);
+                                e.Graphics.FillRectangle(highlightBrush, map16Rect);
+                                e.Graphics.DrawRectangle(highlightPen, map16Rect.X, map16Rect.Y, map16Rect.Width - 1, map16Rect.Height - 1);
+                            }
+                        }
+                    }
+                }
+            }
 
             if (showGrid)
             {

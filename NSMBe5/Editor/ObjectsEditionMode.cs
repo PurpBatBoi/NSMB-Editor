@@ -25,7 +25,8 @@ namespace NSMBe5
 {
     public class ObjectsEditionMode:EditionMode
     {
-        public bool snapTo8Pixels = true;
+        public bool snapEnabled = true;
+        public int configuredSnapSize = 8;
         public bool resizeHandles;
 
         bool CloneMode, SelectMode;
@@ -170,7 +171,10 @@ namespace NSMBe5
             maxBoundY = 0;
             minSizeX = Int32.MaxValue;
             minSizeY = Int32.MaxValue;
-            selectionSnap = snapTo8Pixels?8:1;
+            int baseSnap = snapEnabled ? configuredSnapSize : 1;
+            if (baseSnap < 1)
+                baseSnap = 1;
+            selectionSnap = baseSnap;
             foreach (LevelItem o in SelectedObjects)
             {
                 if (o.rx < minBoundX) minBoundX = o.rx;
