@@ -1225,6 +1225,7 @@
       <DependentUpon>ProgressWindow.cs</DependentUpon>
     </Compile>
     <Compile Include="StageObjSettings.cs" />
+    <Compile Include="SpriteRequirementResolver.cs" />
     <Compile Include="TilemapEditor\TilePicker.cs">
       <SubType>UserControl</SubType>
     </Compile>

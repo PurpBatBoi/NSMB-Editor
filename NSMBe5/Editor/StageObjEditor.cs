@@ -302,7 +302,35 @@ namespace NSMBe5
 
 				if (objID < ROM.NativeStageObjCount)
 				{
-					if (false)
+					if (renderActorID)
+					{
+						string txt = ROM.GetObjIDFromTable(objID).ToString();
+
+						offsetX -= 26;
+						TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y, 26, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Right);
+
+						e.Graphics.DrawLine(
+							Pens.LightGray,
+							new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y),
+							new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y + e.Bounds.Height)
+						);
+					}
+
+					if (renderOverlay)
+					{
+						string txt = StageObjToOverlayMap.ContainsKey(objID) ? $"ov{StageObjToOverlayMap[objID]}" : "-";
+
+						offsetX -= 40;
+						TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y, 40, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Right);
+
+						e.Graphics.DrawLine(
+							Pens.LightGray,
+							new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y),
+							new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y + e.Bounds.Height)
+						);
+					}
+
+					if (renderObjBank)
 					{
 						int set = stageObjBanks[objID * 2];
 						int subset = stageObjBanks[objID * 2 + 1];
@@ -310,74 +338,26 @@ namespace NSMBe5
 						if (subset == 0)
 							txt = "-";
 
-						Color darkBGColor = SystemColors.ControlDark;
+						offsetX -= 30;
+						TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y, 30, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Right);
 
-						e.Graphics.FillRectangle(
-							new SolidBrush(darkBGColor),
-							new Rectangle(
-								e.Bounds.X + e.Bounds.Width - 60, e.Bounds.Y,
-								30, e.Bounds.Height
-							)
+						e.Graphics.DrawLine(
+							Pens.LightGray,
+							new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y),
+							new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y + e.Bounds.Height)
 						);
-
-						TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width - 60, e.Bounds.Y, 30, e.Bounds.Height), TextColor, darkBGColor, TextFormatFlags.Right);
-
-						txt = StageObjToOverlayMap.ContainsKey(objID) ? string.Format("ov{0}", StageObjToOverlayMap[objID]) : "arm9";
-
-						TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width - 30, e.Bounds.Y, 30, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Right);
-					}
-					else
-					{
-						if (renderActorID)
-						{
-							string txt = ROM.GetObjIDFromTable(objID).ToString();
-
-							offsetX -= 26;
-							TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y, 26, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Right);
-
-							e.Graphics.DrawLine(
-								Pens.LightGray,
-								new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y),
-								new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y + e.Bounds.Height)
-							);
-						}
-
-						if (renderOverlay)
-						{
-							string txt = StageObjToOverlayMap.ContainsKey(objID) ? $"ov{StageObjToOverlayMap[objID]}" : "-";
-
-							offsetX -= 40;
-							TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y, 40, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Right);
-
-							e.Graphics.DrawLine(
-								Pens.LightGray,
-								new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y),
-								new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y + e.Bounds.Height)
-							);
-						}
-
-						if (renderObjBank)
-						{
-							int set = stageObjBanks[objID * 2];
-							int subset = stageObjBanks[objID * 2 + 1];
-							string txt = (set + 1) + "-" + subset;
-							if (subset == 0)
-								txt = "-";
-
-							offsetX -= 30;
-							TextRenderer.DrawText(e.Graphics, txt, spriteListBox.Font, new Rectangle(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y, 30, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Right);
-
-							e.Graphics.DrawLine(
-								Pens.LightGray,
-								new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y),
-								new Point(e.Bounds.X + e.Bounds.Width + offsetX, e.Bounds.Y + e.Bounds.Height)
-							);
-						}
-
 					}
 				}
 
-				TextRenderer.DrawText(e.Graphics, (string)spriteListBox.Items[e.Index], spriteListBox.Font, new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Width + offsetX, e.Bounds.Height), TextColor, BackColor, TextFormatFlags.Left);
+				TextRenderer.DrawText(
+					e.Graphics,
+					(string)spriteListBox.Items[e.Index],
+					spriteListBox.Font,
+					new Rectangle(e.Bounds.X, e.Bounds.Y, e.Bounds.Width + offsetX, e.Bounds.Height),
+					TextColor,
+					BackColor,
+					TextFormatFlags.Left
+				);
 
 			}
 		}

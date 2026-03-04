@@ -24,7 +24,7 @@ namespace NSMBe5
 		private NSMBExtraData current;
 		private bool acceptChanges;
 		private const bool isNewerDS = true;
-		private IContainer components;
+		private IContainer components = new Container();
 		private Button add;
 		private Button delete;
 		private Label label3;

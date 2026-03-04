@@ -101,7 +101,6 @@ namespace NSMBe5 {
         }
 
         private LevelMinimap MinimapForm;
-        private LevelConfig LevelConfigForm;
         private NSMBLevel Level;
         private NSMBGraphics GFX;
 
@@ -389,7 +388,7 @@ namespace NSMBe5 {
                 exlvl.Write(bw);
                 bw.Close();
             }
-            catch (Exception ex) { }
+            catch (Exception) { }
         }
 
         private void LevelEditor_SizeChanged(object sender, EventArgs e)

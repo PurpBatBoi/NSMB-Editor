@@ -33,8 +33,7 @@ namespace NSMBe5
         ushort TilesetID;
         List<string> descriptions;
         bool descExists;
-        int pSelectedIndex = -1;
-        
+
         public TilesetEditor(ushort TilesetID, string tilesetName) {
             InitializeComponent();
             LanguageManager.ApplyToContainer(this, "TilesetEditor");

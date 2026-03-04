@@ -149,8 +149,6 @@ namespace NSMBe5
    
     public class NSMBTileset
     {
-        private bool editing = false;
-
         public File GFXFile;
         public File PalFile;
         public File Map16File;

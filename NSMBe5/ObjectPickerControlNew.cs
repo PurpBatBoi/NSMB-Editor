@@ -138,8 +138,8 @@ namespace NSMBe5
             e.Graphics.Transform = tr;
         }
         
-        int xDown, yDown;
-        int xScr, yScr;
+        int yDown;
+        int yScr;
 
         private void ObjectPickerControlNew_MouseDown(object sender, MouseEventArgs e)
         {

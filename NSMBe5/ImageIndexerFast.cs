@@ -34,8 +34,6 @@ namespace NSMBe5
             int paletteCount = 4;
             //COMPUTE FREQUENCY TABLE
 
-            bool haveTransparent = false;
-
             freqTable = new Dictionary<Color, int>();
             for (int x = 0; x < 4; x++)
                 for (int y = 0; y < 4; y++)
@@ -43,7 +41,6 @@ namespace NSMBe5
                     Color c = b.GetPixel(x+xx, y+yy);
                     if (c.A < 128)
                     {
-                        haveTransparent = true;
                         continue;
                     }
                     c = Color.FromArgb(c.R, c.G, c.B);
@@ -58,8 +55,6 @@ namespace NSMBe5
             Box startBox = shrinkBox(new Box(0, 0, 0, 255, 255, 255));
             boxes = new List<Box>();
             boxes.Add(startBox);
-
-//            if(haveTransparent) paletteCount--;
 
             while (boxes.Count < paletteCount)
             {

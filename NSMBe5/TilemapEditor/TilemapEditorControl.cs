@@ -31,8 +31,6 @@ namespace NSMBe5
         private const int MinZoom = 1;
         private const int MaxZoom = 8;
 
-        public delegate void TileSelectedd(int tile, bool second);
-        public event TileSelectedd TileSelected;
         public event EventHandler ZoomChanged;
 
         int hovertx = -1;

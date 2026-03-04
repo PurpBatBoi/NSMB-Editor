@@ -736,7 +736,7 @@ namespace NSMBe5.DSFileSystem
                         break;
                 }
             }
-            catch (AlreadyEditingException ex)
+            catch (AlreadyEditingException)
             {
                 MessageBox.Show(this, (LanguageManager.Get("Errors", "File")));
             }

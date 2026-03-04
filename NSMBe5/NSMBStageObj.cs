@@ -1251,6 +1251,7 @@ namespace NSMBe5
 		public void Render(Graphics g, LevelEditorControl ed)
 		{
 			bool customRendered = true;
+			ObjectID = ROM.GetObjIDFromTable(this.Type);
 
 			System.Action renderCustomInvalidSprite = () =>
 			{

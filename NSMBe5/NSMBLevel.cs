@@ -40,8 +40,6 @@ namespace NSMBe5
 
         public bool[] ValidSprites;
 
-        private bool editing = false;
-
         public int[,] levelTilemap = new int[512, 256];
 
         public NSMBLevel(LevelSource source)

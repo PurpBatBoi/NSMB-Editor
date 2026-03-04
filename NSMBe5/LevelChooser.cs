@@ -302,7 +302,7 @@ namespace NSMBe5 {
                 ClipboardLevelSource level = new ClipboardLevelSource();
                 level.level.Import(LevelFile, BGFile);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 MessageBox.Show((LanguageManager.Get("LevelChooser", "clipinvalidlevel")));
             }
@@ -328,7 +328,7 @@ namespace NSMBe5 {
             {
                 new LevelEditor(new NSMBLevel(new ClipboardLevelSource())).Show();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 MessageBox.Show(LanguageManager.Get("LevelChooser", "clipinvalidlevel"));
             }

@@ -93,7 +93,7 @@
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(22, 13);
             this.label14.TabIndex = 21;
-            this.label14.Text = "16:";
+            this.label14.Text = "15:";
             // 
             // slot15ComboBox
             // 
@@ -115,7 +115,7 @@
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(22, 13);
             this.label9.TabIndex = 19;
-            this.label9.Text = "10:";
+            this.label9.Text = "9:";
             // 
             // label10
             // 
@@ -125,7 +125,7 @@
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(16, 13);
             this.label10.TabIndex = 18;
-            this.label10.Text = "9:";
+            this.label10.Text = "8:";
             // 
             // label11
             // 
@@ -135,7 +135,7 @@
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(16, 13);
             this.label11.TabIndex = 17;
-            this.label11.Text = "8:";
+            this.label11.Text = "7:";
             // 
             // label12
             // 
@@ -145,7 +145,7 @@
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(16, 13);
             this.label12.TabIndex = 16;
-            this.label12.Text = "7:";
+            this.label12.Text = "6:";
             // 
             // slot9ComboBox
             // 
@@ -215,7 +215,7 @@
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(16, 13);
             this.label13.TabIndex = 10;
-            this.label13.Text = "6:";
+            this.label13.Text = "5:";
             // 
             // tabPage3
             // 
@@ -306,7 +306,7 @@
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(16, 13);
             this.label8.TabIndex = 9;
-            this.label8.Text = "5:";
+            this.label8.Text = "4:";
             // 
             // slot2ComboBox
             // 
@@ -328,7 +328,7 @@
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(16, 13);
             this.label7.TabIndex = 8;
-            this.label7.Text = "4:";
+            this.label7.Text = "3:";
             // 
             // slot3ComboBox
             // 
@@ -350,7 +350,7 @@
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(16, 13);
             this.label6.TabIndex = 7;
-            this.label6.Text = "3:";
+            this.label6.Text = "2:";
             // 
             // label5
             // 
@@ -360,7 +360,7 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(16, 13);
             this.label5.TabIndex = 6;
-            this.label5.Text = "2:";
+            this.label5.Text = "1:";
             // 
             // slot4ComboBox
             // 
@@ -382,7 +382,7 @@
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(16, 13);
             this.label4.TabIndex = 0;
-            this.label4.Text = "1:";
+            this.label4.Text = "0:";
             // 
             // tabPage2
             // 
@@ -518,14 +518,14 @@
             this.tableLayoutPanel2.Location = new System.Drawing.Point(3, 3);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 8;
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 23F));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.AutoSize));
+            this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel2.Size = new System.Drawing.Size(237, 412);
             this.tableLayoutPanel2.TabIndex = 1;
             // 

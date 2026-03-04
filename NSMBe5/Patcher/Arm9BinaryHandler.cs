@@ -25,7 +25,6 @@ namespace NSMBe5.Patcher
     public class Arm9BinaryHandler
     {
         public List<Arm9BinSection> sections;
-        Arm9BinSection nullSection;
         File f;
         Filesystem fs;
 

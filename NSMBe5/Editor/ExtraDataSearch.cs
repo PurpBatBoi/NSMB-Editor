@@ -16,7 +16,7 @@ namespace NSMBe5
   {
     public int selItem = -1;
     private Dictionary<string, int> dict;
-    private IContainer components;
+    private IContainer components = new Container();
     private ListBox list;
     private TextBox searchBox;
 

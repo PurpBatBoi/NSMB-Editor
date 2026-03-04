@@ -50,6 +50,8 @@ namespace NSMBe5
 			MouseWheel += new MouseEventHandler(DrawingArea_MouseWheel);
 			DrawingArea.MouseWheel += new MouseEventHandler(DrawingArea_MouseWheel);
 			this.SetStyle(ControlStyles.Selectable, true);
+			enableRequiredSpritesetMenuItem.Click += enableRequiredSpritesetMenuItem_Click;
+			spriteContextMenu.Items.Add(enableRequiredSpritesetMenuItem);
 			//dragTimer.Start();
 		}
 
@@ -165,6 +167,9 @@ namespace NSMBe5
 		public NSMBGraphics GFX;
 		public NSMBLevel Level;
 		private bool Ready;
+		private readonly ContextMenuStrip spriteContextMenu = new ContextMenuStrip();
+		private readonly ToolStripMenuItem enableRequiredSpritesetMenuItem = new ToolStripMenuItem();
+		private NSMBStageObj contextMenuSprite;
 
 		public enum ObjectType {
 			Object,
@@ -186,7 +191,6 @@ namespace NSMBe5
 			DrawingArea.Invalidate();
 		}
 
-		int repa = 0;
 		private void DrawingArea_Paint(object sender, PaintEventArgs e) 
 		{
 			if (!Ready) return;
@@ -411,11 +415,81 @@ namespace NSMBe5
 				{
 					int x = (int)((e.X + ViewablePixels.X * zoom) / zoom);
 					int y = (int)((e.Y + ViewablePixels.Y * zoom) / zoom);
+
+					if (e.Button == MouseButtons.Right && mode is ObjectsEditionMode)
+					{
+						NSMBStageObj sprite = GetTopMostSpriteAt(x, y);
+						if (sprite != null)
+						{
+							contextMenuSprite = sprite;
+							mode.SelectObject(sprite);
+							ConfigureSpriteContextMenu(sprite);
+							spriteContextMenu.Show(DrawingArea, e.Location);
+							this.Focus();
+							return;
+						}
+					}
+
 					mode.MouseDown(x, y, e.Button);
 				}
 			
 				this.Focus();
 			}
+		}
+
+		private NSMBStageObj GetTopMostSpriteAt(int x, int y)
+		{
+			for (int i = Level.Sprites.Count - 1; i >= 0; i--)
+			{
+				NSMBStageObj sprite = Level.Sprites[i];
+				if (sprite.GetGrabBounds().Contains(x, y))
+					return sprite;
+			}
+
+			return null;
+		}
+
+		private void ConfigureSpriteContextMenu(NSMBStageObj sprite)
+		{
+			if (!SpriteRequirementResolver.TryGetRequiredSpriteBank(sprite.Type, out int slot, out int bank))
+			{
+				enableRequiredSpritesetMenuItem.Text = "No required spriteset";
+				enableRequiredSpritesetMenuItem.Enabled = false;
+				return;
+			}
+
+			if (SpriteRequirementResolver.IsSpriteBankSatisfied(Level, sprite.Type))
+			{
+				enableRequiredSpritesetMenuItem.Text = $"Required spriteset already enabled ({slot}:{bank})";
+				enableRequiredSpritesetMenuItem.Enabled = false;
+				return;
+			}
+
+			enableRequiredSpritesetMenuItem.Text = $"Enable required spriteset ({slot}:{bank})";
+			enableRequiredSpritesetMenuItem.Enabled = true;
+		}
+
+		private void enableRequiredSpritesetMenuItem_Click(object sender, EventArgs e)
+		{
+			if (contextMenuSprite == null)
+				return;
+
+			if (!SpriteRequirementResolver.TryGetRequiredSpriteBank(contextMenuSprite.Type, out int slot, out int bank))
+				return;
+
+			byte[][] newData = ChangeLevelSettingsAction.Clone(Level.Blocks);
+			if (newData[13].Length == 0)
+				newData[13] = new byte[16];
+
+			if (newData[13].Length <= slot)
+				return;
+
+			if (newData[13][slot] == bank)
+				return;
+
+			newData[13][slot] = (byte)bank;
+			UndoManager.Do(new ChangeLevelSettingsAction(newData), true);
+			repaint();
 		}
 
 		Bitmap tileCache;

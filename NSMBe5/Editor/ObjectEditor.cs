@@ -29,7 +29,6 @@ namespace NSMBe5
     {
         public List<LevelItem> SelectedObjects;
         public LevelEditorControl EdControl;
-        private bool DataUpdateFlag = false;
 
         public ObjectEditor(LevelEditorControl EdControl)
         {
@@ -53,7 +52,6 @@ namespace NSMBe5
             if (SelectedObjects == null || SelectedObjects.Count == 0)
                 return;
             NSMBTile o = SelectedObjects[0] as NSMBTile;
-            DataUpdateFlag = true;
 
             if (o.Tileset != 0) tileset0picker.selectObjectNumber(-1);
             if (o.Tileset != 1) tileset1picker.selectObjectNumber(-1);
@@ -64,7 +62,6 @@ namespace NSMBe5
             if (o.Tileset == 2) tileset2picker.selectObjectNumber(o.TileID);
 
             tabControl1.SelectedIndex = o.Tileset;
-            DataUpdateFlag = false;
         }
 
         public void ReloadObjectPicker() {

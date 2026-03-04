@@ -123,12 +123,6 @@ namespace NSMBe5 {
         private NSMBLevel Level;
         private LevelEditorControl EdControl;
 
-        public delegate void ReloadTilesetDelegate();
-        public event ReloadTilesetDelegate ReloadTileset;
-
-        public delegate void RefreshMainWindowDelegate();
-        public event RefreshMainWindowDelegate RefreshMainWindow;
-
         private void loadList(string name, ComboBox dest)
         {
             dest.Items.Clear();
