@@ -5,7 +5,7 @@ Forked from [MammaMiaTeam](https://github.com/MammaMiaTeam/NSMB-Editor), origina
 A feature-rich editor for **New Super Mario Bros. (Nintendo DS)** ROM hacking.
 
 ## Download
-- This fork builds: [Github Releases](https://github.com/PurpBatBoi/NSMB-Editor/releases/tag/Latest)
+- This fork builds: [Github Releases](https://github.com/PurpBatBoi/NSMB-Editor/releases)
 - Official *MammaMiaTeam* builds: [GitHub Releases](https://github.com/MammaMiaTeam/NSMB-Editor/releases/latest/)
 - Legacy builds: [NSMBHD Downloads](https://nsmbhd.net/download/all/)
 
