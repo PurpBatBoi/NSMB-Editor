@@ -81,12 +81,12 @@ namespace NSMBe5.TilemapEditor
                 _tilemap.render();
 
             tilePicker1.init(_tilemap.buffers, 8);
-            tilemapEditorControl1.picker = tilePicker1;
-            tilemapEditorControl1.undobutton = undoButton;
-            tilemapEditorControl1.redobutton = redoButton;
-            tilemapEditorControl1.ed = this;
-            tilemapEditorControl1.load(_tilemap);
-            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            tilemapEditorControl1.Picker = tilePicker1;
+            tilemapEditorControl1.UndoButton = undoButton;
+            tilemapEditorControl1.RedoButton = redoButton;
+            tilemapEditorControl1.Editor = this;
+            tilemapEditorControl1.LoadTilemap(_tilemap);
+            tilePicker1.SetZoom(tilemapEditorControl1.ZoomLevel);
 
             RefreshCanvasPanelWidth();
             LayoutBackgroundInfoPanel();
@@ -96,7 +96,7 @@ namespace NSMBe5.TilemapEditor
         public void Reload()
         {
             tilePicker1.init(_tilemap.buffers, 8);
-            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            tilePicker1.SetZoom(tilemapEditorControl1.ZoomLevel);
             LayoutBackgroundInfoPanel();
         }
 
@@ -160,7 +160,7 @@ namespace NSMBe5.TilemapEditor
 
         private void SelectMode(TilemapEditorControl.EditionMode mode, ToolStripButton selectedButton)
         {
-            tilemapEditorControl1.mode = mode;
+            tilemapEditorControl1.Mode = mode;
             ClearToolButtonSelection();
             selectedButton.Checked = true;
         }
@@ -342,7 +342,7 @@ namespace NSMBe5.TilemapEditor
             _tilemap.ReloadResources(true, true, true);
             tilemapEditorControl1.ReloadFromTilemap();
             tilePicker1.init(_tilemap.buffers, 8);
-            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            tilePicker1.SetZoom(tilemapEditorControl1.ZoomLevel);
 
             RefreshCanvasPanelWidth();
 
@@ -353,32 +353,32 @@ namespace NSMBe5.TilemapEditor
         // ── Event handlers ─────────────────────────────────────────────────────
         private void DrawToolButtonClickHandler(object sender, EventArgs e)
         {
-            SelectMode(TilemapEditorControl.EditionMode.DRAW, drawToolButton);
+            SelectMode(TilemapEditorControl.EditionMode.Draw, drawToolButton);
         }
 
         private void XFlipToolButtonClickHandler(object sender, EventArgs e)
         {
-            SelectMode(TilemapEditorControl.EditionMode.XFLIP, xFlipToolButton);
+            SelectMode(TilemapEditorControl.EditionMode.XFlip, xFlipToolButton);
         }
 
         private void YFlipToolButtonClickHandler(object sender, EventArgs e)
         {
-            SelectMode(TilemapEditorControl.EditionMode.YFLIP, yFlipToolButton);
+            SelectMode(TilemapEditorControl.EditionMode.YFlip, yFlipToolButton);
         }
 
         private void CopyToolButtonClickHandler(object sender, EventArgs e)
         {
-            SelectMode(TilemapEditorControl.EditionMode.COPY, copyToolButton);
+            SelectMode(TilemapEditorControl.EditionMode.Copy, copyToolButton);
         }
 
         private void PasteToolButtonClickHandler(object sender, EventArgs e)
         {
-            SelectMode(TilemapEditorControl.EditionMode.PASTE, pasteToolButton);
+            SelectMode(TilemapEditorControl.EditionMode.Paste, pasteToolButton);
         }
 
         private void ChangePalToolButtonClickHandler(object sender, EventArgs e)
         {
-            SelectMode(TilemapEditorControl.EditionMode.CHANGEPAL, changePalToolButton);
+            SelectMode(TilemapEditorControl.EditionMode.ChangePal, changePalToolButton);
         }
 
         private void SaveButtonClickHandler(object sender, EventArgs e)
@@ -388,7 +388,7 @@ namespace NSMBe5.TilemapEditor
 
         private void GridButtonCheckStateChangedHandler(object sender, EventArgs e)
         {
-            tilemapEditorControl1.showGrid = gridButton.Checked;
+            tilemapEditorControl1.ShowGrid = gridButton.Checked;
             tilemapEditorControl1.Invalidate(true);
         }
 
@@ -412,7 +412,7 @@ namespace NSMBe5.TilemapEditor
 
         private void TilemapEditorControl1_ZoomChanged(object sender, EventArgs e)
         {
-            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            tilePicker1.SetZoom(tilemapEditorControl1.ZoomLevel);
             RefreshCanvasPanelWidth();
             LayoutBackgroundInfoPanel();
             UpdateZoomButtons();

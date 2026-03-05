@@ -1,486 +1,529 @@
 ﻿/*
-*   This file is part of NSMB Editor 5.
-*
-*   NSMB Editor 5 is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   NSMB Editor 5 is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with NSMB Editor 5.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of NSMB Editor 5.
+ *
+ * NSMB Editor 5 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * NSMB Editor 5 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NSMB Editor 5. If not, see <http://www.gnu.org/licenses/>.
+ */
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Windows.Forms;
 
 namespace NSMBe5
 {
     public partial class TilemapEditorControl : UserControl
     {
-        private const int BaseTileSize = 8;
-        private const int MinZoom = 1;
-        private const int MaxZoom = 8;
+        // ── Constants ─────────────────────────────────────────────────────────
+        private const int BaseTileSize      = 8;
+        private const int MinZoom           = 1;
+        private const int MaxZoom           = 8;
+        private const float HighlightOutlineWidth = 2.0f;
+        private const int   HighlightFillAlpha    = 96;
 
+        // ── Public state ──────────────────────────────────────────────────────
         public event EventHandler ZoomChanged;
 
-        int hovertx = -1;
-        int hoverty = -1;
+        public Tilemap                    Tilemap;
+        public TilePicker                 Picker;
+        public TilemapEditor.TilemapEditor Editor;
 
-        int downTileX;
-        int downTileY;
+        public ToolStripButton UndoButton;
+        public ToolStripButton RedoButton;
 
-        public int selTileX;
-        public int selTileY;
-        public int selTileWidth;
-        public int selTileHeight;
+        public int BufferWidth;
+        public int BufferHeight;
+        public int TileSize;
+        public int ZoomLevel = 1;
 
-        public Tilemap t;
-        public int bufferWidth, bufferHeight;
-        public int tileSize;
-        public int zoomLevel = 1;
-        public TilePicker picker;
-        public TilemapEditor.TilemapEditor ed;
+        public int SelTileX;
+        public int SelTileY;
+        public int SelTileWidth;
+        public int SelTileHeight;
 
-        public ToolStripButton undobutton;
-        public ToolStripButton redobutton;
-        public Stack<TilemapUndoEntry> UActions = new Stack<TilemapUndoEntry>();
-        public Stack<TilemapUndoEntry> RActions = new Stack<TilemapUndoEntry>();
+        public bool ShowGrid;
+        public EditionMode Mode;
 
-        public bool showGrid = false;
-        private readonly HashSet<int> highlightedTiles = new HashSet<int>();
-        private bool showHighlightedTiles = false;
-        private Color highlightOutlineColor = Color.FromArgb(220, 255, 200, 0);
-        private const float HighlightOutlineWidth = 2.0f;
-        private const int HighlightFillAlpha = 96;
+        public readonly Stack<TilemapUndoEntry> UndoActions = new Stack<TilemapUndoEntry>();
+        public readonly Stack<TilemapUndoEntry> RedoActions = new Stack<TilemapUndoEntry>();
 
+        // ── Private state ─────────────────────────────────────────────────────
+        private int  _hoverTileX = -1;
+        private int  _hoverTileY = -1;
+        private int  _downTileX;
+        private int  _downTileY;
+        private bool _isMouseDown;
+
+        private int _defaultWidth  = 1;
+        private int _defaultHeight = 1;
+
+        private Tilemap.Tile[,] _clipboard;
+        private int _clipboardWidth;
+        private int _clipboardHeight;
+
+        private readonly HashSet<int> _highlightedTiles    = new HashSet<int>();
+        private bool  _showHighlightedTiles;
+        private Color _highlightOutlineColor = Color.FromArgb(220, 255, 200, 0);
+
+        // ── Enums ─────────────────────────────────────────────────────────────
         public enum EditionMode
         {
-            DRAW = 0,
-            XFLIP = 1,
-            YFLIP = 2,
-            COPY = 3,
-            PASTE = 4,
-            CHANGEPAL = 5
+            Draw      = 0,
+            XFlip     = 1,
+            YFlip     = 2,
+            Copy      = 3,
+            Paste     = 4,
+            ChangePal = 5,
         }
 
-        public EditionMode mode;
-
+        // ── Construction / initialisation ─────────────────────────────────────
         public TilemapEditorControl()
         {
             InitializeComponent();
-            this.SetStyle(ControlStyles.Selectable, true);
+            SetStyle(ControlStyles.Selectable, true);
         }
+
+        public void LoadTilemap(Tilemap tilemap)
+        {
+            Tilemap = tilemap;
+            tilemap.render();
+
+            ZoomLevel    = 1;
+            TileSize     = BaseTileSize;
+            BufferHeight = tilemap.height;
+            BufferWidth  = tilemap.width;
+            Size         = new Size(BufferWidth * TileSize, BufferHeight * TileSize);
+
+            UndoButton.Click += Undo;
+            RedoButton.Click += Redo;
+        }
+
+        // ── Public API ────────────────────────────────────────────────────────
+
+        public void ReloadFromTilemap()
+        {
+            if (Tilemap == null)
+                return;
+
+            BufferHeight = Tilemap.height;
+            BufferWidth  = Tilemap.width;
+            Size         = new Size(BufferWidth * TileSize, BufferHeight * TileSize);
+            pictureBox1.Invalidate(true);
+        }
+
+        public bool CanZoomIn    => ZoomLevel < MaxZoom;
+        public bool CanZoomOut   => ZoomLevel > MinZoom;
+        public bool IsActualZoom => ZoomLevel == 1;
+
+        public void ZoomIn()         => SetZoom(ZoomLevel + 1);
+        public void ZoomOut()        => SetZoom(ZoomLevel - 1);
+        public void ZoomActualSize() => SetZoom(1);
+
+        public void SetZoom(int newZoom)
+        {
+            int clamped = Clamp(newZoom, MinZoom, MaxZoom);
+            if (clamped == ZoomLevel)
+                return;
+
+            ZoomLevel = clamped;
+            TileSize  = BaseTileSize * ZoomLevel;
+            Size      = new Size(BufferWidth * TileSize, BufferHeight * TileSize);
+            pictureBox1.Invalidate(true);
+
+            ZoomChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        // ── Highlight overlay API ─────────────────────────────────────────────
 
         public void SetHighlightTiles(IEnumerable<int> tileNumbers)
         {
-            highlightedTiles.Clear();
+            _highlightedTiles.Clear();
             if (tileNumbers != null)
-            {
-                foreach (int tileNumber in tileNumbers)
-                {
-                    if (tileNumber >= 0)
-                        highlightedTiles.Add(tileNumber);
-                }
-            }
+                foreach (int n in tileNumbers)
+                    if (n >= 0)
+                        _highlightedTiles.Add(n);
 
             pictureBox1.Invalidate(true);
         }
 
         public void SetHighlightVisible(bool visible)
         {
-            if (showHighlightedTiles == visible)
+            if (_showHighlightedTiles == visible)
                 return;
 
-            showHighlightedTiles = visible;
+            _showHighlightedTiles = visible;
             pictureBox1.Invalidate(true);
         }
 
         public void SetHighlightOutlineColor(Color color)
         {
-            highlightOutlineColor = color;
+            _highlightOutlineColor = color;
             pictureBox1.Invalidate(true);
         }
 
-        public void load(Tilemap t)
+        // ── Undo / Redo ───────────────────────────────────────────────────────
+
+        public void Undo(object sender, EventArgs e)
         {
-            this.t = t;
-            t.render();
-
-            this.zoomLevel = 1;
-            this.tileSize = BaseTileSize;
-            this.bufferHeight = t.height;
-            this.bufferWidth = t.width;
-
-            this.Size = new Size(bufferWidth * tileSize, bufferHeight * tileSize);
-
-            undobutton.Click += new EventHandler(Undo);
-            redobutton.Click += new EventHandler(Redo);
-        }
-
-        public void ReloadFromTilemap()
-        {
-            if (t == null)
+            if (UndoActions.Count == 0)
                 return;
 
-            bufferHeight = t.height;
-            bufferWidth = t.width;
-            Size = new Size(bufferWidth * tileSize, bufferHeight * tileSize);
+            TilemapUndoEntry item = UndoActions.Pop();
+            item.Undo(Tilemap.tiles);
+            item.ReRender(Tilemap);
+            RedoActions.Push(item);
+
+            UndoButton.Enabled = UndoActions.Count > 0;
+            RedoButton.Enabled = true;
             pictureBox1.Invalidate(true);
         }
 
-        public bool CanZoomIn
+        public void Redo(object sender, EventArgs e)
         {
-            get { return zoomLevel < MaxZoom; }
-        }
-
-        public bool CanZoomOut
-        {
-            get { return zoomLevel > MinZoom; }
-        }
-
-        public bool IsActualZoom
-        {
-            get { return zoomLevel == 1; }
-        }
-
-        public void ZoomIn()
-        {
-            SetZoom(zoomLevel + 1);
-        }
-
-        public void ZoomOut()
-        {
-            SetZoom(zoomLevel - 1);
-        }
-
-        public void ZoomActualSize()
-        {
-            SetZoom(1);
-        }
-
-        public void SetZoom(int newZoom)
-        {
-            int clamped = Math.Max(MinZoom, Math.Min(MaxZoom, newZoom));
-            if (clamped == zoomLevel)
+            if (RedoActions.Count == 0)
                 return;
 
-            zoomLevel = clamped;
-            tileSize = BaseTileSize * zoomLevel;
-            this.Size = new Size(bufferWidth * tileSize, bufferHeight * tileSize);
+            TilemapUndoEntry item = RedoActions.Pop();
+            item.Redo(Tilemap.tiles);
+            item.ReRender(Tilemap);
+            UndoActions.Push(item);
+
+            RedoButton.Enabled = RedoActions.Count > 0;
+            UndoButton.Enabled = true;
             pictureBox1.Invalidate(true);
-
-            if (ZoomChanged != null)
-                ZoomChanged(this, EventArgs.Empty);
         }
 
-        int defaultWidth = 1;
-        int defaultHeight = 1;
+        // ── Painting ──────────────────────────────────────────────────────────
 
-        private void getDefaultSize()
-        {
-            defaultWidth = 1;
-            defaultHeight = 1;
-
-            if (mode == EditionMode.DRAW)
-            {
-                defaultWidth = picker.selTileWidth;
-                defaultHeight = picker.selTileHeight;
-            }
-            if (mode == EditionMode.PASTE && clipboard != null)
-            {
-                defaultWidth = clipboardWidth;
-                defaultHeight = clipboardHeight;
-            }
-        }
-    
         private void pictureBox1_Paint(object sender, PaintEventArgs e)
         {
-            if (t == null)
+            if (Tilemap == null)
                 return;
 
-            e.Graphics.FillRectangle(Brushes.DarkSlateGray,
-                0, 0, bufferWidth * tileSize, bufferHeight * tileSize);
+            Graphics g = e.Graphics;
 
-            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
-            e.Graphics.DrawImage(t.buffer, 0, 0, bufferWidth * tileSize, bufferHeight * tileSize);
+            g.FillRectangle(Brushes.DarkSlateGray,
+                0, 0, BufferWidth * TileSize, BufferHeight * TileSize);
 
-            if (showHighlightedTiles && highlightedTiles.Count > 0)
+            g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            g.PixelOffsetMode   = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+            g.DrawImage(Tilemap.buffer, 0, 0, BufferWidth * TileSize, BufferHeight * TileSize);
+
+            DrawHighlightOverlay(g);
+            DrawGrid(g);
+            DrawSelectionRect(g);
+            DrawHoverRect(g);
+        }
+
+        private void DrawHighlightOverlay(Graphics g)
+        {
+            if (!_showHighlightedTiles || _highlightedTiles.Count == 0)
+                return;
+
+            using (Pen pen = new Pen(_highlightOutlineColor, HighlightOutlineWidth))
+            using (SolidBrush brush = new SolidBrush(Color.FromArgb(
+                HighlightFillAlpha,
+                _highlightOutlineColor.R,
+                _highlightOutlineColor.G,
+                _highlightOutlineColor.B)))
             {
-                using (Pen highlightPen = new Pen(highlightOutlineColor, HighlightOutlineWidth))
-                using (SolidBrush highlightBrush = new SolidBrush(Color.FromArgb(HighlightFillAlpha, highlightOutlineColor.R, highlightOutlineColor.G, highlightOutlineColor.B)))
+                foreach (int tileNumber in _highlightedTiles)
                 {
-                    foreach (int tileNumber in highlightedTiles)
-                    {
-                        int tx = tileNumber % bufferWidth;
-                        int ty = tileNumber / bufferWidth;
-                        if (tx < 0 || tx >= bufferWidth || ty < 0 || ty >= bufferHeight)
-                            continue;
+                    int tx = tileNumber % BufferWidth;
+                    int ty = tileNumber / BufferWidth;
 
-                        if ((tx & 1) == 0 && (ty & 1) == 0)
-                        {
-                            int right = tileNumber + 1;
-                            int bottom = tileNumber + bufferWidth;
-                            int bottomRight = bottom + 1;
-                            if (highlightedTiles.Contains(right) && highlightedTiles.Contains(bottom) && highlightedTiles.Contains(bottomRight))
-                            {
-                                Rectangle map16Rect = new Rectangle(tx * tileSize, ty * tileSize, tileSize * 2, tileSize * 2);
-                                e.Graphics.FillRectangle(highlightBrush, map16Rect);
-                                e.Graphics.DrawRectangle(highlightPen, map16Rect.X, map16Rect.Y, map16Rect.Width - 1, map16Rect.Height - 1);
-                            }
-                        }
-                    }
+                    if (tx < 0 || tx >= BufferWidth || ty < 0 || ty >= BufferHeight)
+                        continue;
+
+                    // Only draw at even-aligned 2×2 groups.
+                    if ((tx & 1) != 0 || (ty & 1) != 0)
+                        continue;
+
+                    int right       = tileNumber + 1;
+                    int bottom      = tileNumber + BufferWidth;
+                    int bottomRight = bottom + 1;
+
+                    if (!_highlightedTiles.Contains(right)       ||
+                        !_highlightedTiles.Contains(bottom)      ||
+                        !_highlightedTiles.Contains(bottomRight))
+                        continue;
+
+                    var rect = new Rectangle(tx * TileSize, ty * TileSize, TileSize * 2, TileSize * 2);
+                    g.FillRectangle(brush, rect);
+                    g.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+                }
+            }
+        }
+
+        private void DrawGrid(Graphics g)
+        {
+            if (!ShowGrid)
+                return;
+
+            // Grid lines every 2 tiles (one Map16 block).
+            int step = TileSize * 2;
+            for (int x = step; x < Width;  x += step) g.DrawLine(Pens.Gray, x, 0,      x,      Height);
+            for (int y = step; y < Height; y += step) g.DrawLine(Pens.Gray, 0, y, Width, y);
+        }
+
+        private void DrawSelectionRect(Graphics g)
+        {
+            if (!_isMouseDown)
+                return;
+
+            // While dragging a single-tile selection, preview the brush size instead.
+            int drawWidth  = (SelTileWidth  == 1 && SelTileHeight == 1) ? _defaultWidth  : SelTileWidth;
+            int drawHeight = (SelTileWidth  == 1 && SelTileHeight == 1) ? _defaultHeight : SelTileHeight;
+
+            g.DrawRectangle(Pens.White,
+                SelTileX * TileSize,
+                SelTileY * TileSize,
+                drawWidth  * TileSize,
+                drawHeight * TileSize);
+        }
+
+        private void DrawHoverRect(Graphics g)
+        {
+            if (_isMouseDown || _hoverTileX == -1)
+                return;
+
+            g.DrawRectangle(Pens.White,
+                _hoverTileX * TileSize,
+                _hoverTileY * TileSize,
+                _defaultWidth  * TileSize,
+                _defaultHeight * TileSize);
+        }
+
+        // ── Edit operations ───────────────────────────────────────────────────
+
+        private void RefreshDefaultSize()
+        {
+            _defaultWidth  = 1;
+            _defaultHeight = 1;
+
+            if (Mode == EditionMode.Draw)
+            {
+                _defaultWidth  = Picker.selTileWidth;
+                _defaultHeight = Picker.selTileHeight;
+            }
+            else if (Mode == EditionMode.Paste && _clipboard != null)
+            {
+                _defaultWidth  = _clipboardWidth;
+                _defaultHeight = _clipboardHeight;
+            }
+        }
+
+        private void ApplyEdit()
+        {
+            // Finalise a 1×1 drag into the current brush/clipboard size.
+            if (SelTileWidth == 1 && SelTileHeight == 1)
+            {
+                RefreshDefaultSize();
+                SelTileWidth  = _defaultWidth;
+                SelTileHeight = _defaultHeight;
+            }
+
+            // Record undo state before making changes (skip for Copy — nothing changes).
+            TilemapUndoEntry undoEntry = null;
+            if (Mode != EditionMode.Copy)
+            {
+                UndoButton.Enabled = true;
+                RedoButton.Enabled = false;
+                RedoActions.Clear();
+                undoEntry = new TilemapUndoEntry(Tilemap.tiles, SelTileX, SelTileY, SelTileWidth, SelTileHeight);
+                UndoActions.Push(undoEntry);
+            }
+
+            switch (Mode)
+            {
+                case EditionMode.Draw:      ApplyDraw();      break;
+                case EditionMode.XFlip:     ApplyXFlip();     break;
+                case EditionMode.YFlip:     ApplyYFlip();     break;
+                case EditionMode.Copy:      ApplyCopy();      break;
+                case EditionMode.Paste:     ApplyPaste();     break;
+                case EditionMode.ChangePal: ApplyChangePal(); break;
+            }
+
+            Tilemap.reRender(SelTileX, SelTileY, SelTileWidth, SelTileHeight);
+            pictureBox1.Invalidate(true);
+
+            // Save the post-edit tile state into the undo entry.
+            if (Mode != EditionMode.Copy)
+                undoEntry.LoadNewTiles(Tilemap.tiles);
+        }
+
+        private void ApplyDraw()
+        {
+            for (int x = 0; x < SelTileWidth; x++)
+            {
+                for (int y = 0; y < SelTileHeight; y++)
+                {
+                    if (x + SelTileX >= Tilemap.width  ||
+                        y + SelTileY >= Tilemap.height)
+                        continue;
+
+                    // Tile number wraps within the picker's selected rectangle.
+                    int tileNum = Picker.selTileNum
+                        + (x % Picker.selTileWidth)
+                        + (y % Picker.selTileHeight) * Picker.bufferWidth;
+
+                    Tilemap.Tile tile = Tilemap.tiles[x + SelTileX, y + SelTileY];
+                    tile.tileNum = tileNum;
+                    tile.palNum  = Picker.selTilePal;
+                    tile.hflip   = false;
+                    tile.vflip   = false;
+                }
+            }
+        }
+
+        private void ApplyXFlip()
+        {
+            // Swap columns around the horizontal centre.
+            for (int x = 0; x < SelTileWidth / 2; x++)
+            {
+                for (int y = 0; y < SelTileHeight; y++)
+                {
+                    int x1 = x + SelTileX;
+                    int x2 = SelTileX + SelTileWidth - x - 1;
+                    int yy = y + SelTileY;
+
+                    Tilemap.Tile tmp  = Tilemap.tiles[x1, yy];
+                    Tilemap.tiles[x1, yy] = Tilemap.tiles[x2, yy];
+                    Tilemap.tiles[x2, yy] = tmp;
                 }
             }
 
-            if (showGrid)
+            // Flip the horizontal flag on every tile in the region.
+            for (int x = 0; x < SelTileWidth; x++)
+                for (int y = 0; y < SelTileHeight; y++)
+                    Tilemap.tiles[x + SelTileX, y + SelTileY].hflip
+                        = !Tilemap.tiles[x + SelTileX, y + SelTileY].hflip;
+        }
+
+        private void ApplyYFlip()
+        {
+            // Swap rows around the vertical centre.
+            for (int x = 0; x < SelTileWidth; x++)
             {
-                int gridStep = tileSize * 2;
-                for (int x = gridStep; x < Width; x += gridStep)
-                    e.Graphics.DrawLine(Pens.Gray, x, 0, x, Height);
-                for (int y = gridStep; y < Height; y += gridStep)
-                    e.Graphics.DrawLine(Pens.Gray, 0, y, Width, y);
+                for (int y = 0; y < SelTileHeight / 2; y++)
+                {
+                    int y1 = y + SelTileY;
+                    int y2 = SelTileY + SelTileHeight - y - 1;
+                    int xx = x + SelTileX;
+
+                    Tilemap.Tile tmp  = Tilemap.tiles[xx, y1];
+                    Tilemap.tiles[xx, y1] = Tilemap.tiles[xx, y2];
+                    Tilemap.tiles[xx, y2] = tmp;
+                }
             }
 
-            getDefaultSize();
+            // Flip the vertical flag on every tile in the region.
+            for (int x = 0; x < SelTileWidth; x++)
+                for (int y = 0; y < SelTileHeight; y++)
+                    Tilemap.tiles[x + SelTileX, y + SelTileY].vflip
+                        = !Tilemap.tiles[x + SelTileX, y + SelTileY].vflip;
+        }
 
-            if (down)
-            {
-                if (selTileWidth == 1 && selTileHeight == 1)
-                    e.Graphics.DrawRectangle(Pens.White,
-                        selTileX * tileSize, selTileY * tileSize,
-                        defaultWidth * tileSize, defaultHeight * tileSize);
-                else
-                    e.Graphics.DrawRectangle(Pens.White,
-                        selTileX * tileSize, selTileY * tileSize,
-                        selTileWidth * tileSize, selTileHeight * tileSize);
-            }
+        private void ApplyCopy()
+        {
+            _clipboardWidth  = SelTileWidth;
+            _clipboardHeight = SelTileHeight;
+            _clipboard       = new Tilemap.Tile[_clipboardWidth, _clipboardHeight];
 
-            if (!down && hovertx != -1)
+            for (int x = 0; x < SelTileWidth; x++)
+                for (int y = 0; y < SelTileHeight; y++)
+                    _clipboard[x, y] = Tilemap.tiles[x + SelTileX, y + SelTileY];
+        }
+
+        private void ApplyPaste()
+        {
+            if (_clipboard == null)
+                return;
+
+            for (int x = 0; x < SelTileWidth; x++)
+                for (int y = 0; y < SelTileHeight; y++)
+                    Tilemap.tiles[x + SelTileX, y + SelTileY]
+                        = _clipboard[x % _clipboardWidth, y % _clipboardHeight];
+        }
+
+        private void ApplyChangePal()
+        {
+            for (int x = 0; x < SelTileWidth; x++)
             {
-                e.Graphics.DrawRectangle(Pens.White,
-                    hovertx * tileSize, hoverty * tileSize,
-                    defaultWidth * tileSize, defaultHeight * tileSize);
+                for (int y = 0; y < SelTileHeight; y++)
+                {
+                    Tilemap.Tile tile = Tilemap.tiles[x + SelTileX, y + SelTileY];
+                    tile.palNum = (tile.palNum + 1) % Tilemap.palettes.Length;
+                }
             }
         }
 
-        bool down = false;
+        // ── Mouse event handlers ──────────────────────────────────────────────
 
         private void pictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
-            down = true;
-
-            int tx = e.X / tileSize;
-            if (tx >= bufferWidth) tx = bufferWidth-1;
-            if (tx < 0) tx = 0;
-            int ty = e.Y / tileSize;
-            if (ty >= bufferHeight) ty = bufferHeight - 1;
-            if (ty < 0) ty = 0;
-
-            downTileX = tx;
-            downTileY = ty;
+            _isMouseDown = true;
+            _downTileX   = Clamp(e.X / TileSize, 0, BufferWidth  - 1);
+            _downTileY   = Clamp(e.Y / TileSize, 0, BufferHeight - 1);
 
             pictureBox1_MouseMove(sender, e);
-
             FocusPreservingParentScroll();
-        }
-
-        private void FocusPreservingParentScroll()
-        {
-            ScrollableControl scrollParent = Parent as ScrollableControl;
-            Point scrollPos = Point.Empty;
-            bool restoreScroll = false;
-
-            if (scrollParent != null && scrollParent.AutoScroll)
-            {
-                Point autoScrollPos = scrollParent.AutoScrollPosition;
-                scrollPos = new Point(-autoScrollPos.X, -autoScrollPos.Y);
-                restoreScroll = true;
-            }
-
-            this.Focus();
-
-            if (restoreScroll)
-                scrollParent.AutoScrollPosition = scrollPos;
         }
 
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
-            if (down)
+            if (_isMouseDown)
             {
-                int dx = downTileX;
-                int dy = downTileY;
+                int tx = Clamp(e.X / TileSize, 0, BufferWidth  - 1);
+                int ty = Clamp(e.Y / TileSize, 0, BufferHeight - 1);
 
-                int tx = e.X / tileSize;
-                if (tx >= bufferWidth) tx = bufferWidth - 1;
-                if (tx < 0) tx = 0;
+                int xMin = Math.Min(_downTileX, tx);
+                int yMin = Math.Min(_downTileY, ty);
+                int xMax = Math.Max(_downTileX, tx);
+                int yMax = Math.Max(_downTileY, ty);
 
-                int ty = e.Y / tileSize;
-                if (ty >= bufferHeight) ty = bufferHeight - 1;
-                if (ty < 0) ty = 0;
-
-                int xmin = Math.Min(dx, tx);
-                int ymin = Math.Min(dy, ty);
-                int xmax = Math.Max(dx, tx);
-                int ymax = Math.Max(dy, ty);
-
-                selTileX = xmin;
-                selTileY = ymin;
-                selTileWidth = xmax - xmin + 1;
-                selTileHeight = ymax - ymin + 1;
+                SelTileX      = xMin;
+                SelTileY      = yMin;
+                SelTileWidth  = xMax - xMin + 1;
+                SelTileHeight = yMax - yMin + 1;
             }
             else
             {
-                int tx = e.X / tileSize;
-                if (tx >= bufferWidth) tx = bufferWidth - 1;
-                if (tx < 0) tx = 0;
-                int ty = e.Y / tileSize;
-                if (ty >= bufferHeight) ty = bufferHeight - 1;
-                if (ty < 0) ty = 0;
-
-                hovertx = tx;
-                hoverty = ty;
+                _hoverTileX = Clamp(e.X / TileSize, 0, BufferWidth  - 1);
+                _hoverTileY = Clamp(e.Y / TileSize, 0, BufferHeight - 1);
             }
+
+            RefreshDefaultSize();
             pictureBox1.Invalidate(true);
         }
 
-        Tilemap.Tile[,] clipboard;
-        int clipboardWidth, clipboardHeight;
-
         private void pictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
-            if (down)
-            {
-                if (selTileWidth == 1 && selTileHeight == 1)
-                {
-                    getDefaultSize();
-                    selTileWidth = defaultWidth;
-                    selTileHeight = defaultHeight;
-                }
-                //Prep for the undo buffer if it isn't a copy action
-                TilemapUndoEntry undoitem = null;
-                if (mode != EditionMode.COPY) {
-                    undobutton.Enabled = true;
-                    redobutton.Enabled = false;
-                    RActions.Clear();
-                    undoitem = new TilemapUndoEntry(t.tiles, selTileX, selTileY, selTileWidth, selTileHeight);
-                    UActions.Push(undoitem);
-                }
+            if (_isMouseDown)
+                ApplyEdit();
 
-                switch (mode)
-                {
-                    case EditionMode.DRAW:
-                        for (int x = 0; x < selTileWidth; x++)
-                            for (int y = 0; y < selTileHeight; y++)
-                            {
-                                int tnum = picker.selTileNum;
-                                tnum += x % picker.selTileWidth;
-                                tnum += (y % picker.selTileHeight) * picker.bufferWidth;
-
-                                if (x + selTileX >= t.width) continue;
-                                if (y + selTileY >= t.height) continue;
-                                t.tiles[x + selTileX, y + selTileY].tileNum = tnum;
-                                t.tiles[x + selTileX, y + selTileY].palNum = picker.selTilePal;
-                                t.tiles[x + selTileX, y + selTileY].hflip = false;
-                                t.tiles[x + selTileX, y + selTileY].vflip = false;
-                            }
-                        break;
-                    case EditionMode.XFLIP:
-                        for (int x = 0; x < selTileWidth / 2; x++)
-                            for (int y = 0; y < selTileHeight; y++)
-                            {
-                                int x1 = x + selTileX;
-                                int x2 = selTileX + selTileWidth - x - 1;
-                                int yy = y + selTileY;
-
-                                Tilemap.Tile tmp = t.tiles[x1, yy];
-                                t.tiles[x1, yy] = t.tiles[x2, yy];
-                                t.tiles[x2, yy] = tmp;
-                            }
-                        for (int x = 0; x < selTileWidth; x++)
-                            for (int y = 0; y < selTileHeight; y++)
-                                t.tiles[x + selTileX, y + selTileY].hflip = !t.tiles[x + selTileX, y + selTileY].hflip;
-                        break;
-                    case EditionMode.YFLIP:
-                        for (int x = 0; x < selTileWidth; x++)
-                            for (int y = 0; y < selTileHeight / 2; y++)
-                            {
-                                int y1 = y + selTileY;
-                                int y2 = selTileY + selTileHeight - y - 1;
-                                int xx = x + selTileX;
-
-                                Tilemap.Tile tmp = t.tiles[xx, y1];
-                                t.tiles[xx, y1] = t.tiles[xx, y2];
-                                t.tiles[xx, y2] = tmp;
-                            }
-                        for (int x = 0; x < selTileWidth; x++)
-                            for (int y = 0; y < selTileHeight; y++)
-                                t.tiles[x + selTileX, y + selTileY].vflip = !t.tiles[x + selTileX, y + selTileY].vflip;
-                        break;
-                    case EditionMode.COPY:
-                        clipboard = new Tilemap.Tile[selTileWidth, selTileHeight];
-                        clipboardWidth = selTileWidth;
-                        clipboardHeight = selTileHeight;
-
-                        for (int x = 0; x < selTileWidth; x++)
-                            for (int y = 0; y < selTileHeight; y++)
-                                clipboard[x, y] = t.tiles[x + selTileX, y + selTileY];
-                        break;
-                    case EditionMode.PASTE:
-                    	if(clipboard == null) break;
-                        for (int x = 0; x < selTileWidth; x++)
-                            for (int y = 0; y < selTileHeight; y++)
-                                t.tiles[x + selTileX, y + selTileY] = clipboard[x % clipboardWidth, y % clipboardHeight];
-                        break;
-                    case EditionMode.CHANGEPAL:
-                        for (int x = 0; x < selTileWidth; x++)
-                            for (int y = 0; y < selTileHeight; y++)
-                            {
-                                t.tiles[x + selTileX, y + selTileY].palNum++;
-                                t.tiles[x + selTileX, y + selTileY].palNum %= t.palettes.Length;
-                            } 
-                        break;
-                }
-                t.reRender(selTileX, selTileY, selTileWidth, selTileHeight);
-                pictureBox1.Invalidate(true);
-                if (mode != EditionMode.COPY)
-                    undoitem.LoadNewTiles(t.tiles); //Save the new tiles into the undo history
-            }
-            down = false;
+            _isMouseDown = false;
         }
 
         private void pictureBox1_MouseLeave(object sender, EventArgs e)
         {
-            hovertx = -1;
-            hoverty = -1;
+            _hoverTileX = -1;
+            _hoverTileY = -1;
             pictureBox1.Invalidate(true);
         }
 
-        private void HandleZoomMouseWheel(MouseEventArgs e)
-        {
-            if ((ModifierKeys & Keys.Control) == Keys.Control)
-            {
-                if (e.Delta > 0)
-                    ZoomIn();
-                else if (e.Delta < 0)
-                    ZoomOut();
-            }
-        }
-
         private void pictureBox1_MouseWheel(object sender, MouseEventArgs e)
-        {
-            HandleZoomMouseWheel(e);
-        }
+            => HandleZoomMouseWheel(e);
 
         protected override void OnMouseWheel(MouseEventArgs e)
         {
@@ -490,114 +533,113 @@ namespace NSMBe5
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            int idx = -1;
-            if (keyData == Keys.D) idx = 0;
-            if (keyData == Keys.X) idx = 1;
-            if (keyData == Keys.Y) idx = 2;
-            if (keyData == Keys.C) idx = 3;
-            if (keyData == Keys.V) idx = 4;
-            if (keyData == Keys.P) idx = 5;
+            // Mode hotkeys — index matches EditionMode enum values.
+            switch (keyData)
+            {
+                case Keys.D: Editor.SetMode(EditionMode.Draw);      return true;
+                case Keys.X: Editor.SetMode(EditionMode.XFlip);     return true;
+                case Keys.Y: Editor.SetMode(EditionMode.YFlip);     return true;
+                case Keys.C: Editor.SetMode(EditionMode.Copy);      return true;
+                case Keys.V: Editor.SetMode(EditionMode.Paste);     return true;
+                case Keys.P: Editor.SetMode(EditionMode.ChangePal); return true;
+            }
 
-            if (idx > -1)
-            {
-                ed.SetMode((EditionMode)idx);
-                return true;
-            }
-            if (keyData == (Keys.Control | Keys.Z))
-            {
-                Undo(null, null);
-                return true;
-            }
-            if (keyData == (Keys.Control | Keys.Y))
-            {
-                Redo(null, null);
-                return true;
-            }
-            if (keyData == (Keys.Control | Keys.S))
-            {
-                t.save();
-                return true;
-            }
+            if (keyData == (Keys.Control | Keys.Z)) { Undo(null, null); return true; }
+            if (keyData == (Keys.Control | Keys.Y)) { Redo(null, null); return true; }
+            if (keyData == (Keys.Control | Keys.S)) { Tilemap.save();   return true; }
+
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        public void Undo(object sender, EventArgs e)
+        // ── Private helpers ───────────────────────────────────────────────────
+
+        private void HandleZoomMouseWheel(MouseEventArgs e)
         {
-            if (UActions.Count == 0) return;
-            TilemapUndoEntry item = UActions.Pop();
-            item.Undo(t.tiles);
-            item.reRender(t);
-            RActions.Push(item);
-            undobutton.Enabled = UActions.Count > 0;
-            redobutton.Enabled = true;
-            pictureBox1.Invalidate(true);
+            if ((ModifierKeys & Keys.Control) != Keys.Control)
+                return;
+
+            if      (e.Delta > 0) ZoomIn();
+            else if (e.Delta < 0) ZoomOut();
         }
 
-        public void Redo(object sender, EventArgs e)
+        /// <summary>
+        /// Focuses this control without disturbing the parent scroll container's
+        /// current scroll position (WinForms auto-scrolls to the focused child).
+        /// </summary>
+        private void FocusPreservingParentScroll()
         {
-            if (RActions.Count == 0) return;
-            TilemapUndoEntry item = RActions.Pop();
-            item.Redo(t.tiles);
-            item.reRender(t);
-            UActions.Push(item);
-            redobutton.Enabled = RActions.Count > 0;
-            undobutton.Enabled = true;
-            pictureBox1.Invalidate(true);
+            ScrollableControl scrollParent = Parent as ScrollableControl;
+            Point savedScroll = Point.Empty;
+            bool  shouldRestore = scrollParent != null && scrollParent.AutoScroll;
+
+            if (shouldRestore)
+            {
+                Point pos = scrollParent.AutoScrollPosition;
+                // AutoScrollPosition is returned as negative; store it positive for re-assignment.
+                savedScroll = new Point(-pos.X, -pos.Y);
+            }
+
+            Focus();
+
+            if (shouldRestore)
+                scrollParent.AutoScrollPosition = savedScroll;
         }
+
+        private static int Clamp(int value, int min, int max)
+            => Math.Max(min, Math.Min(max, value));
     }
+
+
+    // ── TilemapUndoEntry ──────────────────────────────────────────────────────
 
     public class TilemapUndoEntry
     {
-        public Tilemap.Tile[,] oldTiles;
-        public Tilemap.Tile[,] newTiles;
-        public int x;
-        public int y;
-        public int width;
-        public int height;
+        // ── Public state ──────────────────────────────────────────────────────
+        public Tilemap.Tile[,] OldTiles { get; private set; }
+        public Tilemap.Tile[,] NewTiles { get; private set; }
 
+        public int X      { get; }
+        public int Y      { get; }
+        public int Width  { get; }
+        public int Height { get; }
+
+        // ── Construction ──────────────────────────────────────────────────────
         public TilemapUndoEntry(Tilemap.Tile[,] allTiles, int x, int y, int width, int height)
         {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-            oldTiles = getTiles(allTiles);
+            X      = x;
+            Y      = y;
+            Width  = width;
+            Height = height;
+            OldTiles = CopyRegion(allTiles);
         }
 
+        // ── Public API ────────────────────────────────────────────────────────
+
+        /// <summary>Called after the edit is applied to snapshot the post-edit state.</summary>
         public void LoadNewTiles(Tilemap.Tile[,] allTiles)
+            => NewTiles = CopyRegion(allTiles);
+
+        public void Undo(Tilemap.Tile[,] allTiles) => PasteRegion(OldTiles, allTiles);
+        public void Redo(Tilemap.Tile[,] allTiles) => PasteRegion(NewTiles, allTiles);
+
+        public void ReRender(Tilemap tilemap) => tilemap.reRender(X, Y, Width, Height);
+
+        // ── Private helpers ───────────────────────────────────────────────────
+
+        private Tilemap.Tile[,] CopyRegion(Tilemap.Tile[,] allTiles)
         {
-            newTiles = getTiles(allTiles);
+            var region = new Tilemap.Tile[Width, Height];
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    region[x, y] = allTiles[x + X, y + Y];
+            return region;
         }
 
-        public void Undo(Tilemap.Tile[,] allTiles)
+        private void PasteRegion(Tilemap.Tile[,] region, Tilemap.Tile[,] allTiles)
         {
-            setTiles(oldTiles, allTiles);
-        }
-
-        public void Redo(Tilemap.Tile[,] allTiles)
-        {
-            setTiles(newTiles, allTiles);
-        }
-
-        public Tilemap.Tile[,] getTiles(Tilemap.Tile[,] allTiles)
-        {
-            Tilemap.Tile[,] tiles = new Tilemap.Tile[width, height];
-            for (int yy = 0; yy < height; yy++)
-                for (int xx = 0; xx < width; xx++)
-                    tiles[xx, yy] = allTiles[xx + x, yy + y];
-            return tiles;
-        }
-
-        public void setTiles(Tilemap.Tile[,] tiles, Tilemap.Tile[,] allTiles)
-        {
-            for (int yy = 0; yy < height; yy++)
-                for (int xx = 0; xx < width; xx++)
-                    allTiles[xx + x, yy + y] = tiles[xx, yy];
-        }
-
-        public void reRender(Tilemap t)
-        {
-            t.reRender(x, y, width, height);
+            for (int y = 0; y < Height; y++)
+                for (int x = 0; x < Width; x++)
+                    allTiles[x + X, y + Y] = region[x, y];
         }
     }
 }
