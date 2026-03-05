@@ -118,6 +118,9 @@ namespace NSMBe5
         private void ObjectPickerControlNew_Paint(object sender, PaintEventArgs e)
         {
             Rectangle rec = e.ClipRectangle;
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
 
             e.Graphics.FillRectangle(Brushes.White, rec);
             rec.Y += vScrollBar1.Value;

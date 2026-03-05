@@ -42,6 +42,9 @@
             this.behaviorPickerPanel = new System.Windows.Forms.Panel();
             this.tileBehaviorPicker = new NSMBe5.TilePicker();
             this.behaviorPickerTopPanel = new System.Windows.Forms.Panel();
+            this.behaviorPasteButton = new System.Windows.Forms.Button();
+            this.behaviorCopyButton = new System.Windows.Forms.Button();
+            this.behaviorOverlayCheckBox = new System.Windows.Forms.CheckBox();
             this.behaviorZoomUpDown = new System.Windows.Forms.NumericUpDown();
             this.lblBehaviorZoom = new System.Windows.Forms.Label();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
@@ -210,6 +213,9 @@
             // 
             // behaviorPickerTopPanel
             // 
+            this.behaviorPickerTopPanel.Controls.Add(this.behaviorPasteButton);
+            this.behaviorPickerTopPanel.Controls.Add(this.behaviorCopyButton);
+            this.behaviorPickerTopPanel.Controls.Add(this.behaviorOverlayCheckBox);
             this.behaviorPickerTopPanel.Controls.Add(this.behaviorZoomUpDown);
             this.behaviorPickerTopPanel.Controls.Add(this.lblBehaviorZoom);
             this.behaviorPickerTopPanel.Dock = System.Windows.Forms.DockStyle.Top;
@@ -217,6 +223,39 @@
             this.behaviorPickerTopPanel.Name = "behaviorPickerTopPanel";
             this.behaviorPickerTopPanel.Size = new System.Drawing.Size(274, 26);
             this.behaviorPickerTopPanel.TabIndex = 1;
+            // 
+            // behaviorPasteButton
+            // 
+            this.behaviorPasteButton.Location = new System.Drawing.Point(191, 2);
+            this.behaviorPasteButton.Name = "behaviorPasteButton";
+            this.behaviorPasteButton.Size = new System.Drawing.Size(44, 22);
+            this.behaviorPasteButton.TabIndex = 4;
+            this.behaviorPasteButton.Text = "Paste";
+            this.behaviorPasteButton.UseVisualStyleBackColor = true;
+            this.behaviorPasteButton.Click += new System.EventHandler(this.behaviorPasteButton_Click);
+            // 
+            // behaviorCopyButton
+            // 
+            this.behaviorCopyButton.Location = new System.Drawing.Point(145, 2);
+            this.behaviorCopyButton.Name = "behaviorCopyButton";
+            this.behaviorCopyButton.Size = new System.Drawing.Size(44, 22);
+            this.behaviorCopyButton.TabIndex = 3;
+            this.behaviorCopyButton.Text = "Copy";
+            this.behaviorCopyButton.UseVisualStyleBackColor = true;
+            this.behaviorCopyButton.Click += new System.EventHandler(this.behaviorCopyButton_Click);
+            // 
+            // behaviorOverlayCheckBox
+            // 
+            this.behaviorOverlayCheckBox.AutoSize = true;
+            this.behaviorOverlayCheckBox.Checked = true;
+            this.behaviorOverlayCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.behaviorOverlayCheckBox.Location = new System.Drawing.Point(238, 5);
+            this.behaviorOverlayCheckBox.Name = "behaviorOverlayCheckBox";
+            this.behaviorOverlayCheckBox.Size = new System.Drawing.Size(38, 17);
+            this.behaviorOverlayCheckBox.TabIndex = 5;
+            this.behaviorOverlayCheckBox.Text = "Ov";
+            this.behaviorOverlayCheckBox.UseVisualStyleBackColor = true;
+            this.behaviorOverlayCheckBox.CheckedChanged += new System.EventHandler(this.behaviorOverlayCheckBox_CheckedChanged);
             // 
             // behaviorZoomUpDown
             // 
@@ -389,5 +428,8 @@
         private System.Windows.Forms.NumericUpDown behaviorZoomUpDown;
         private System.Windows.Forms.Label lblBehaviorZoom;
         private System.Windows.Forms.Splitter behaviorSplitter;
+        private System.Windows.Forms.CheckBox behaviorOverlayCheckBox;
+        private System.Windows.Forms.Button behaviorPasteButton;
+        private System.Windows.Forms.Button behaviorCopyButton;
     }
 }

@@ -22,6 +22,7 @@ using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace NSMBe5
 {
@@ -33,6 +34,17 @@ namespace NSMBe5
         ushort TilesetID;
         List<string> descriptions;
         bool descExists;
+        private uint[,] tileBehaviorClipboard;
+        private int tileBehaviorClipboardWidth;
+        private int tileBehaviorClipboardHeight;
+        private readonly Stack<TileBehaviorUndoEntry> tileBehaviorUndoStack = new Stack<TileBehaviorUndoEntry>();
+        private readonly Stack<TileBehaviorUndoEntry> tileBehaviorRedoStack = new Stack<TileBehaviorUndoEntry>();
+
+        private class TileBehaviorUndoEntry
+        {
+            public uint[] Before;
+            public uint[] After;
+        }
 
         public TilesetEditor(ushort TilesetID, string tilesetName) {
             InitializeComponent();
@@ -90,6 +102,8 @@ namespace NSMBe5
 
             tileBehaviorPicker.init(new Bitmap[] { t.Map16Buffer }, 16);
             tileBehaviorPicker.SetZoom((int)behaviorZoomUpDown.Value);
+            tileBehaviorPicker.SetBehaviorShapeOverlayData(t.TileBehaviors);
+            tileBehaviorPicker.SetBehaviorShapeOverlayVisible(behaviorOverlayCheckBox.Checked);
 
             //FIXME
 //            graphicsEditor1.SaveGraphics += new GraphicsEditor.SaveGraphicsHandler(graphicsEditor1_SaveGraphics);
@@ -105,6 +119,7 @@ namespace NSMBe5
             }
             this.Icon = Properties.Resources.nsmbe;
 			Program.ApplyFontToControls(Controls);
+            KeyPreview = true;
 		}
 
         private void objectPickerControl1_ObjectSelected()
@@ -298,11 +313,177 @@ namespace NSMBe5
             for(int x = 0; x < tileBehaviorPicker.selTileWidth; x++)
                 for(int y = 0; y < tileBehaviorPicker.selTileHeight; y++)
                     t.TileBehaviors[tileBehaviorPicker.selTileNum + x + y*tileBehaviorPicker.bufferWidth] = val;
+
+            tileBehaviorPicker.RefreshView();
         }
 
         private void behaviorZoomUpDown_ValueChanged(object sender, EventArgs e)
         {
             tileBehaviorPicker.SetZoom((int)behaviorZoomUpDown.Value);
+        }
+
+        private void behaviorOverlayCheckBox_CheckedChanged(object sender, EventArgs e)
+        {
+            tileBehaviorPicker.SetBehaviorShapeOverlayVisible(behaviorOverlayCheckBox.Checked);
+        }
+
+        private void behaviorCopyButton_Click(object sender, EventArgs e)
+        {
+            CopySelectedTileBehaviors();
+        }
+
+        private void behaviorPasteButton_Click(object sender, EventArgs e)
+        {
+            PasteSelectedTileBehaviors();
+        }
+
+        private void CopySelectedTileBehaviors()
+        {
+            int width = tileBehaviorPicker.selTileWidth;
+            int height = tileBehaviorPicker.selTileHeight;
+            if (width <= 0 || height <= 0)
+                return;
+
+            int startTileNum = tileBehaviorPicker.selTileNum;
+            int startX = startTileNum % tileBehaviorPicker.bufferWidth;
+            int startY = startTileNum / tileBehaviorPicker.bufferWidth;
+
+            tileBehaviorClipboard = new uint[width, height];
+            tileBehaviorClipboardWidth = width;
+            tileBehaviorClipboardHeight = height;
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    int srcX = startX + x;
+                    int srcY = startY + y;
+                    int srcTile = srcY * tileBehaviorPicker.bufferWidth + srcX;
+                    if (srcX < 0 || srcX >= tileBehaviorPicker.bufferWidth || srcY < 0 || srcY >= tileBehaviorPicker.bufferHeight)
+                        continue;
+
+                    tileBehaviorClipboard[x, y] = t.TileBehaviors[srcTile];
+                }
+            }
+        }
+
+        private void PasteSelectedTileBehaviors()
+        {
+            if (tileBehaviorClipboard == null || tileBehaviorClipboardWidth <= 0 || tileBehaviorClipboardHeight <= 0)
+                return;
+
+            uint[] beforeSnapshot = CloneTileBehaviors();
+
+            int startTileNum = tileBehaviorPicker.selTileNum;
+            int startX = startTileNum % tileBehaviorPicker.bufferWidth;
+            int startY = startTileNum / tileBehaviorPicker.bufferWidth;
+            int destWidth = tileBehaviorPicker.selTileWidth;
+            int destHeight = tileBehaviorPicker.selTileHeight;
+
+            bool repeatOverSelection = destWidth > 1 || destHeight > 1;
+            if (!repeatOverSelection)
+            {
+                destWidth = tileBehaviorClipboardWidth;
+                destHeight = tileBehaviorClipboardHeight;
+            }
+
+            for (int x = 0; x < destWidth; x++)
+            {
+                for (int y = 0; y < destHeight; y++)
+                {
+                    int dstX = startX + x;
+                    int dstY = startY + y;
+                    if (dstX < 0 || dstX >= tileBehaviorPicker.bufferWidth || dstY < 0 || dstY >= tileBehaviorPicker.bufferHeight)
+                        continue;
+
+                    int dstTile = dstY * tileBehaviorPicker.bufferWidth + dstX;
+                    uint value = tileBehaviorClipboard[x % tileBehaviorClipboardWidth, y % tileBehaviorClipboardHeight];
+                    t.TileBehaviors[dstTile] = value;
+                }
+            }
+
+            uint[] afterSnapshot = CloneTileBehaviors();
+            if (!beforeSnapshot.SequenceEqual(afterSnapshot))
+            {
+                tileBehaviorUndoStack.Push(new TileBehaviorUndoEntry()
+                {
+                    Before = beforeSnapshot,
+                    After = afterSnapshot
+                });
+                tileBehaviorRedoStack.Clear();
+            }
+
+            DataUpdateFlag = true;
+            tileBehaviorEditor.setData(t.TileBehaviors[tileBehaviorPicker.selTileNum]);
+            DataUpdateFlag = false;
+            tileBehaviorPicker.RefreshView();
+        }
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            bool tileBehaviorTabFocused = tabControl1.SelectedTab == tabPage5;
+            if (tileBehaviorTabFocused && keyData == (Keys.Control | Keys.C))
+            {
+                CopySelectedTileBehaviors();
+                return true;
+            }
+
+            if (tileBehaviorTabFocused && keyData == (Keys.Control | Keys.V))
+            {
+                PasteSelectedTileBehaviors();
+                return true;
+            }
+            if (tileBehaviorTabFocused && keyData == (Keys.Control | Keys.Z))
+            {
+                UndoLastTileBehaviorPaste();
+                return true;
+            }
+            if (tileBehaviorTabFocused && keyData == (Keys.Control | Keys.Y))
+            {
+                RedoLastTileBehaviorPaste();
+                return true;
+            }
+
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private uint[] CloneTileBehaviors()
+        {
+            uint[] clone = new uint[t.TileBehaviors.Length];
+            Array.Copy(t.TileBehaviors, clone, clone.Length);
+            return clone;
+        }
+
+        private void ApplyTileBehaviorSnapshot(uint[] snapshot)
+        {
+            if (snapshot == null || snapshot.Length != t.TileBehaviors.Length)
+                return;
+
+            Array.Copy(snapshot, t.TileBehaviors, snapshot.Length);
+            DataUpdateFlag = true;
+            tileBehaviorEditor.setData(t.TileBehaviors[tileBehaviorPicker.selTileNum]);
+            DataUpdateFlag = false;
+            tileBehaviorPicker.RefreshView();
+        }
+
+        private void UndoLastTileBehaviorPaste()
+        {
+            if (tileBehaviorUndoStack.Count == 0)
+                return;
+
+            TileBehaviorUndoEntry entry = tileBehaviorUndoStack.Pop();
+            tileBehaviorRedoStack.Push(entry);
+            ApplyTileBehaviorSnapshot(entry.Before);
+        }
+
+        private void RedoLastTileBehaviorPaste()
+        {
+            if (tileBehaviorRedoStack.Count == 0)
+                return;
+
+            TileBehaviorUndoEntry entry = tileBehaviorRedoStack.Pop();
+            tileBehaviorUndoStack.Push(entry);
+            ApplyTileBehaviorSnapshot(entry.After);
         }
 
         private void imageManager1_SomethingSaved()

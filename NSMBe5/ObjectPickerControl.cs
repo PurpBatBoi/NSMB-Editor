@@ -129,6 +129,9 @@ namespace NSMBe5
         private void DrawingArea_Paint(object sender, PaintEventArgs e)
         {
             if (!Ready) return;
+            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
 
             e.Graphics.Clear(Color.Silver);
 

@@ -19,7 +19,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Data;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -31,6 +33,7 @@ namespace NSMBe5
         private const int BaseTileSize = 16;
         private int objectEditorZoom = 3;
         private int map16TilesZoom = 1;
+        private readonly Dictionary<int, Bitmap> scaledMap16TileCache = new Dictionary<int, Bitmap>();
         List<NSMBTileset.ObjectDefTile> selRow;
         NSMBTileset.ObjectDefTile selTile;
         NSMBTileset.ObjectDef obj;
@@ -91,9 +94,113 @@ namespace NSMBe5
         {
             this.tnum = TilesetNumber;
             this.tls = g.Tilesets[tnum];
+            ClearScaledMap16TileCache();
             tilePicker1.init(new Bitmap[] { tls.map16.buffer }, 16);
             tilePicker1.SetZoom(map16TilesZoom);
             previewTile = new NSMBTile(0, tnum, 0, 0, 6, 6, g);
+        }
+
+        private void ClearScaledMap16TileCache()
+        {
+            foreach (Bitmap bmp in scaledMap16TileCache.Values)
+                bmp.Dispose();
+            scaledMap16TileCache.Clear();
+        }
+
+        private static Bitmap ExtractMap16Tile(Bitmap map16Buffer, int tileId)
+        {
+            Bitmap src = new Bitmap(BaseTileSize, BaseTileSize, PixelFormat.Format32bppArgb);
+            Rectangle srcRect = Image2D.getTileRectangle(map16Buffer, BaseTileSize, tileId);
+            using (Graphics g = Graphics.FromImage(src))
+            {
+                g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+                g.DrawImage(map16Buffer, new Rectangle(0, 0, BaseTileSize, BaseTileSize), srcRect, GraphicsUnit.Pixel);
+            }
+            return src;
+        }
+
+        private static Bitmap ScaleBitmapNearest(Bitmap source, int scale)
+        {
+            if (scale <= 1)
+                return (Bitmap)source.Clone();
+
+            int dstWidth = source.Width * scale;
+            int dstHeight = source.Height * scale;
+            Bitmap dst = new Bitmap(dstWidth, dstHeight, PixelFormat.Format32bppArgb);
+
+            Rectangle srcRect = new Rectangle(0, 0, source.Width, source.Height);
+            Rectangle dstRect = new Rectangle(0, 0, dstWidth, dstHeight);
+            Bitmap src32 = source.PixelFormat == PixelFormat.Format32bppArgb
+                ? source
+                : source.Clone(srcRect, PixelFormat.Format32bppArgb);
+            bool disposeSrc32 = !ReferenceEquals(src32, source);
+
+            BitmapData srcData = src32.LockBits(srcRect, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData dstData = dst.LockBits(dstRect, ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+
+            try
+            {
+                int srcStride = srcData.Stride;
+                int dstStride = dstData.Stride;
+                int srcBytesLen = srcStride * source.Height;
+                int dstBytesLen = dstStride * dstHeight;
+                byte[] srcBytes = new byte[srcBytesLen];
+                byte[] dstBytes = new byte[dstBytesLen];
+                Marshal.Copy(srcData.Scan0, srcBytes, 0, srcBytesLen);
+
+                for (int y = 0; y < source.Height; y++)
+                {
+                    int srcRow = y * srcStride;
+                    for (int sy = 0; sy < scale; sy++)
+                    {
+                        int dstRow = (y * scale + sy) * dstStride;
+                        for (int x = 0; x < source.Width; x++)
+                        {
+                            int srcPx = srcRow + x * 4;
+                            byte b = srcBytes[srcPx + 0];
+                            byte g = srcBytes[srcPx + 1];
+                            byte r = srcBytes[srcPx + 2];
+                            byte a = srcBytes[srcPx + 3];
+
+                            for (int sx = 0; sx < scale; sx++)
+                            {
+                                int dstPx = dstRow + (x * scale + sx) * 4;
+                                dstBytes[dstPx + 0] = b;
+                                dstBytes[dstPx + 1] = g;
+                                dstBytes[dstPx + 2] = r;
+                                dstBytes[dstPx + 3] = a;
+                            }
+                        }
+                    }
+                }
+                Marshal.Copy(dstBytes, 0, dstData.Scan0, dstBytesLen);
+            }
+            finally
+            {
+                src32.UnlockBits(srcData);
+                dst.UnlockBits(dstData);
+                if (disposeSrc32)
+                    src32.Dispose();
+            }
+
+            return dst;
+        }
+
+        private Bitmap GetScaledMap16Tile(int tileId, int editorTileSize)
+        {
+            int cacheKey = (editorTileSize << 16) | (tileId & 0xFFFF);
+            Bitmap cached;
+            if (scaledMap16TileCache.TryGetValue(cacheKey, out cached))
+                return cached;
+
+            using (Bitmap tile = ExtractMap16Tile(tls.Map16Buffer, tileId))
+            {
+                Bitmap scaled = ScaleBitmapNearest(tile, editorTileSize / BaseTileSize);
+                scaledMap16TileCache[cacheKey] = scaled;
+                return scaled;
+            }
         }
 
         private void editZone_Paint(object sender, PaintEventArgs e)
@@ -104,7 +211,7 @@ namespace NSMBe5
             Graphics g = e.Graphics;
             int editorTileSize = BaseTileSize * objectEditorZoom;
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
+            g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
             g.FillRectangle(Brushes.LightSteelBlue, 0, 0, editZone.Width, editZone.Height);
 
@@ -123,11 +230,8 @@ namespace NSMBe5
                     }
                     else if (!t.emptyTile)
                     {
-                        g.DrawImage(
-                            tls.Map16Buffer,
-                            new Rectangle(x, y, editorTileSize, editorTileSize),
-                            Image2D.getTileRectangle(tls.Map16Buffer, 16, t.tileID),
-                            GraphicsUnit.Pixel);
+                        Bitmap scaledTile = GetScaledMap16Tile(t.tileID, editorTileSize);
+                        g.DrawImageUnscaled(scaledTile, x, y);
                         if ((t.controlByte & 1) != 0)
                             g.DrawRectangle(Pens.Red, x, y, editorTileSize - 1, editorTileSize - 1);
                         if ((t.controlByte & 2) != 0)
@@ -306,12 +410,29 @@ namespace NSMBe5
             if (previewTile == null)
                 return;
 
-            e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
-            e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.None;
-            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
-            e.Graphics.ScaleTransform(PreviewZoom, PreviewZoom);
-            e.Graphics.FillRectangle(Brushes.LightSteelBlue, 0, 0, previewTile.Width * BaseTileSize, previewTile.Height * BaseTileSize);
-            previewTile.RenderPlain(e.Graphics, 0, 0);
+            int nativeWidth = Math.Max(1, previewTile.Width * BaseTileSize);
+            int nativeHeight = Math.Max(1, previewTile.Height * BaseTileSize);
+
+            using (Bitmap native = new Bitmap(nativeWidth, nativeHeight, PixelFormat.Format32bppArgb))
+            {
+                using (Graphics g = Graphics.FromImage(native))
+                {
+                    g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    g.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                    g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+                    g.FillRectangle(Brushes.LightSteelBlue, 0, 0, nativeWidth, nativeHeight);
+                    previewTile.RenderPlain(g, 0, 0);
+                }
+
+                using (Bitmap scaled = ScaleBitmapNearest(native, PreviewZoom))
+                {
+                    e.Graphics.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                    e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
+                    e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.None;
+                    e.Graphics.FillRectangle(Brushes.LightSteelBlue, 0, 0, previewBox.Width, previewBox.Height);
+                    e.Graphics.DrawImageUnscaled(scaled, 0, 0);
+                }
+            }
         }
 
         private void previewBox_MouseDown(object sender, MouseEventArgs e)
@@ -351,6 +472,7 @@ namespace NSMBe5
 
         public void redrawThings()
         {
+            ClearScaledMap16TileCache();
             tilePicker1.init(new Bitmap[] { tls.map16.buffer }, 16);
             tilePicker1.SetZoom(map16TilesZoom);
         }
@@ -432,6 +554,7 @@ namespace NSMBe5
         private void objectEditorZoomUpDown_ValueChanged(object sender, EventArgs e)
         {
             objectEditorZoom = (int)objectEditorZoomUpDown.Value;
+            ClearScaledMap16TileCache();
             editZone.Invalidate(true);
         }
 
