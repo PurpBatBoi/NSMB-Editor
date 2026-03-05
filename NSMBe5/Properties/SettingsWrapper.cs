@@ -115,12 +115,6 @@ namespace NSMBe5.Properties
             set => ConfigurationManager.Settings.ShowMap16RandomizationHighlight = value;
         }
 
-        public bool ShowMap16RandomizationHighlightPicker
-        {
-            get => ConfigurationManager.Settings.ShowMap16RandomizationHighlightPicker;
-            set => ConfigurationManager.Settings.ShowMap16RandomizationHighlightPicker = value;
-        }
-
         public int Map16RandomizationOutlineColorArgb
         {
             get => ConfigurationManager.Settings.Map16RandomizationOutlineColorArgb;

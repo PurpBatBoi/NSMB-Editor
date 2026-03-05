@@ -24,7 +24,6 @@ namespace NSMBe5.Configuration
         public string RecentFiles { get; set; } = "";
         public int LevelEditorSnapSize { get; set; } = 8;
         public bool ShowMap16RandomizationHighlight { get; set; } = true;
-        public bool ShowMap16RandomizationHighlightPicker { get; set; } = false;
         public int Map16RandomizationOutlineColorArgb { get; set; } = -3604481;
 
         /// <summary>

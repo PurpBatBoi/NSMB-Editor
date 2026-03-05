@@ -36,7 +36,7 @@ A feature-rich editor for **New Super Mario Bros. (Nintendo DS)** ROM hacking.
   - Direct **Background** file importing from the Tilemap editor.
 - Map16 randomization overlays:
   - Runtime-table-based randomization tile highlighting in Tileset Editor.
-  - Separate toolbar toggles for Map16 canvas overlay and tile-picker overlay.
+  - Toolbar toggle for Map16 canvas overlay (tile picker overlay removed).
   - Outline color picker for randomization highlights with persisted color setting.
 - Ongoing language updates (including French strings for newer UI options).
 

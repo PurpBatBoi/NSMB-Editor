@@ -37,12 +37,9 @@ namespace NSMBe5.TilemapEditor
         private DSFile backgroundPaletteFile;
         private DSFile backgroundLayoutFile;
         private ToolStripButton randomizationCanvasButton;
-        private ToolStripButton randomizationPickerButton;
         private ToolStripButton randomizationColorButton;
         private HashSet<int> canvasRandomizationTiles = new HashSet<int>();
-        private HashSet<int> pickerRandomizationTiles = new HashSet<int>();
         private bool canvasRandomizationVisible;
-        private bool pickerRandomizationVisible;
         private Color randomizationOutlineColor = Color.FromArgb(220, 255, 200, 0);
         private GroupBox backgroundFilesGroup;
         private Label graphicsFileLabel;
@@ -62,7 +59,6 @@ namespace NSMBe5.TilemapEditor
         }
 
         public event Action<bool> CanvasRandomizationVisibilityChanged;
-        public event Action<bool> PickerRandomizationVisibilityChanged;
         public event Action<Color> RandomizationOutlineColorChanged;
 
         public void load(Tilemap t)
@@ -101,25 +97,22 @@ namespace NSMBe5.TilemapEditor
             buttons[(int)mode].PerformClick();
         }
 
-        public void ConfigureRandomizationToggleButtons(bool canvasVisible, bool pickerVisible, Color outlineColor, string canvasText, string pickerText, string colorText)
+        public void ConfigureRandomizationToggleButtons(bool canvasVisible, Color outlineColor, string canvasText, string colorText)
         {
             EnsureRandomizationButtons();
             randomizationCanvasButton.Text = canvasText;
             randomizationCanvasButton.Checked = canvasVisible;
-            randomizationPickerButton.Text = pickerText;
-            randomizationPickerButton.Checked = pickerVisible;
             randomizationColorButton.Text = colorText;
 
             canvasRandomizationVisible = canvasVisible;
-            pickerRandomizationVisible = pickerVisible;
             randomizationOutlineColor = outlineColor;
             tilemapEditorControl1.SetHighlightOutlineColor(randomizationOutlineColor);
-            tilePicker1.SetHighlightOutlineColor(randomizationOutlineColor);
+            tilePicker1.SetHighlightVisible(false);
         }
 
         private void EnsureRandomizationButtons()
         {
-            if (randomizationCanvasButton != null && randomizationPickerButton != null && randomizationColorButton != null)
+            if (randomizationCanvasButton != null && randomizationColorButton != null)
                 return;
 
             randomizationCanvasButton = new ToolStripButton();
@@ -128,12 +121,6 @@ namespace NSMBe5.TilemapEditor
             randomizationCanvasButton.Name = "randomizationCanvasButton";
             randomizationCanvasButton.Click += randomizationCanvasButton_Click;
 
-            randomizationPickerButton = new ToolStripButton();
-            randomizationPickerButton.CheckOnClick = true;
-            randomizationPickerButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            randomizationPickerButton.Name = "randomizationPickerButton";
-            randomizationPickerButton.Click += randomizationPickerButton_Click;
-
             randomizationColorButton = new ToolStripButton();
             randomizationColorButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
             randomizationColorButton.Name = "randomizationColorButton";
@@ -141,7 +128,6 @@ namespace NSMBe5.TilemapEditor
 
             toolStrip1.Items.Add(new ToolStripSeparator());
             toolStrip1.Items.Add(randomizationCanvasButton);
-            toolStrip1.Items.Add(randomizationPickerButton);
             toolStrip1.Items.Add(randomizationColorButton);
         }
 
@@ -150,13 +136,6 @@ namespace NSMBe5.TilemapEditor
             canvasRandomizationVisible = randomizationCanvasButton.Checked;
             tilemapEditorControl1.SetHighlightVisible(canvasRandomizationVisible);
             CanvasRandomizationVisibilityChanged?.Invoke(canvasRandomizationVisible);
-        }
-
-        private void randomizationPickerButton_Click(object sender, EventArgs e)
-        {
-            pickerRandomizationVisible = randomizationPickerButton.Checked;
-            tilePicker1.SetHighlightVisible(pickerRandomizationVisible);
-            PickerRandomizationVisibilityChanged?.Invoke(pickerRandomizationVisible);
         }
 
         private void randomizationColorButton_Click(object sender, EventArgs e)
@@ -172,7 +151,6 @@ namespace NSMBe5.TilemapEditor
 
                 randomizationOutlineColor = dlg.Color;
                 tilemapEditorControl1.SetHighlightOutlineColor(randomizationOutlineColor);
-                tilePicker1.SetHighlightOutlineColor(randomizationOutlineColor);
                 RandomizationOutlineColorChanged?.Invoke(randomizationOutlineColor);
             }
         }
@@ -183,20 +161,10 @@ namespace NSMBe5.TilemapEditor
             canvasRandomizationVisible = visible;
             tilemapEditorControl1.SetHighlightTiles(canvasRandomizationTiles);
             tilemapEditorControl1.SetHighlightVisible(canvasRandomizationVisible);
+            tilePicker1.SetHighlightVisible(false);
 
             if (randomizationCanvasButton != null)
                 randomizationCanvasButton.Checked = canvasRandomizationVisible;
-        }
-
-        public void SetPickerRandomizationOverlay(IEnumerable<int> tileNumbers, bool visible)
-        {
-            pickerRandomizationTiles = tileNumbers == null ? new HashSet<int>() : new HashSet<int>(tileNumbers);
-            pickerRandomizationVisible = visible;
-            tilePicker1.SetHighlightTiles(pickerRandomizationTiles);
-            tilePicker1.SetHighlightVisible(pickerRandomizationVisible);
-
-            if (randomizationPickerButton != null)
-                randomizationPickerButton.Checked = pickerRandomizationVisible;
         }
 
         private void uncheckButtons()
