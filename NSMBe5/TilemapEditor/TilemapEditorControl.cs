@@ -500,7 +500,7 @@ namespace NSMBe5
 
             if (idx > -1)
             {
-                ed.setMode((EditionMode)idx);
+                ed.SetMode((EditionMode)idx);
                 return true;
             }
             if (keyData == (Keys.Control | Keys.Z))

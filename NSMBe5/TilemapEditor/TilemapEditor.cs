@@ -1,4 +1,4 @@
-﻿/*
+/*
 *   This file is part of NSMB Editor 5.
 *
 *   NSMB Editor 5 is free software: you can redistribute it and/or modify
@@ -15,12 +15,9 @@
 *   along with NSMB Editor 5.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
 using System.IO;
 using System.Windows.Forms;
 using DSFile = NSMBe5.DSFileSystem.File;
@@ -30,237 +27,145 @@ namespace NSMBe5.TilemapEditor
 {
     public partial class TilemapEditor : UserControl
     {
-        Tilemap t;
+        // ── Instance fields ─────────────────────────────────────────────────────
+        private Tilemap _tilemap;
+        private ToolStripButton[] _toolButtons;
 
-        ToolStripButton[] buttons;
-        private DSFile backgroundGraphicsFile;
-        private DSFile backgroundPaletteFile;
-        private DSFile backgroundLayoutFile;
-        private ToolStripButton randomizationCanvasButton;
-        private ToolStripButton randomizationColorButton;
-        private HashSet<int> canvasRandomizationTiles = new HashSet<int>();
-        private bool canvasRandomizationVisible;
-        private Color randomizationOutlineColor = Color.FromArgb(220, 255, 200, 0);
-        private GroupBox backgroundFilesGroup;
-        private Label graphicsFileLabel;
-        private Label paletteFileLabel;
-        private Label layoutFileLabel;
-        private Button exportBackgroundFilesButton;
-        private Button importBackgroundFilesButton;
+        private DSFile _backgroundGraphicsFile;
+        private DSFile _backgroundPaletteFile;
+        private DSFile _backgroundLayoutFile;
 
+        private ToolStripButton _randomizationCanvasButton;
+        private ToolStripButton _randomizationColorButton;
+        private HashSet<int> _canvasRandomizationTiles = new HashSet<int>();
+        private bool _isCanvasRandomizationVisible;
+        private Color _randomizationOutlineColor = Color.FromArgb(220, 255, 200, 0);
+
+        private GroupBox _backgroundFilesGroup;
+        private Label _graphicsFileLabel;
+        private Label _paletteFileLabel;
+        private Label _layoutFileLabel;
+        private Button _exportBackgroundFilesButton;
+        private Button _importBackgroundFilesButton;
+
+        // ── Construction / initialisation ──────────────────────────────────────
         public TilemapEditor()
         {
             InitializeComponent();
             LanguageManager.ApplyToContainer(this, "TilemapEditor");
-            buttons = new ToolStripButton[] { drawToolButton, xFlipToolButton, yFlipToolButton, copyToolButton, pasteToolButton, changePalToolButton };
-            tilemapEditorControl1.ZoomChanged += tilemapEditorControl1_ZoomChanged;
+
+            _toolButtons = new[]
+            {
+                drawToolButton,
+                xFlipToolButton,
+                yFlipToolButton,
+                copyToolButton,
+                pasteToolButton,
+                changePalToolButton
+            };
+
+            tilemapEditorControl1.ZoomChanged += TilemapEditorControl1_ZoomChanged;
+
             InitializeBackgroundInfoPanel();
             UpdateZoomButtons();
         }
 
+        // ── Public API ─────────────────────────────────────────────────────────
         public event Action<bool> CanvasRandomizationVisibilityChanged;
         public event Action<Color> RandomizationOutlineColorChanged;
 
-        public void load(Tilemap t)
+        public void LoadTilemap(Tilemap tilemap)
         {
-            this.t = t;
-            if (t.buffers == null) t.render();
-            tilePicker1.init(t.buffers, 8);
+            _tilemap = tilemap;
+            if (_tilemap.buffers == null)
+                _tilemap.render();
+
+            tilePicker1.init(_tilemap.buffers, 8);
             tilemapEditorControl1.picker = tilePicker1;
             tilemapEditorControl1.undobutton = undoButton;
             tilemapEditorControl1.redobutton = redoButton;
             tilemapEditorControl1.ed = this;
-            tilemapEditorControl1.load(t);
+            tilemapEditorControl1.load(_tilemap);
             tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+
             RefreshCanvasPanelWidth();
             LayoutBackgroundInfoPanel();
             UpdateZoomButtons();
         }
 
-        public void SetBackgroundFiles(DSFile graphicsFile, DSFile paletteFile, DSFile layoutFile)
+        public void Reload()
         {
-            backgroundGraphicsFile = graphicsFile;
-            backgroundPaletteFile = paletteFile;
-            backgroundLayoutFile = layoutFile;
-            UpdateBackgroundFileInfo();
-        }
-
-        public void reload()
-        {
-            tilePicker1.init(t.buffers, 8);
+            tilePicker1.init(_tilemap.buffers, 8);
             tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
             LayoutBackgroundInfoPanel();
         }
 
-        public void setMode(TilemapEditorControl.EditionMode mode)
+        public void SetMode(TilemapEditorControl.EditionMode mode)
         {
-            buttons[(int)mode].PerformClick();
+            _toolButtons[(int)mode].PerformClick();
+        }
+
+        public void ShowSaveButton()
+        {
+            saveButton.Visible = true;
+            toolStripSeparator1.Visible = true;
+        }
+
+        public void SetBackgroundFiles(DSFile graphicsFile, DSFile paletteFile, DSFile layoutFile)
+        {
+            _backgroundGraphicsFile = graphicsFile;
+            _backgroundPaletteFile = paletteFile;
+            _backgroundLayoutFile = layoutFile;
+
+            UpdateBackgroundFileInfo();
         }
 
         public void ConfigureRandomizationToggleButtons(bool canvasVisible, Color outlineColor, string canvasText, string colorText)
         {
             EnsureRandomizationButtons();
-            randomizationCanvasButton.Text = canvasText;
-            randomizationCanvasButton.Checked = canvasVisible;
-            randomizationColorButton.Text = colorText;
 
-            canvasRandomizationVisible = canvasVisible;
-            randomizationOutlineColor = outlineColor;
-            tilemapEditorControl1.SetHighlightOutlineColor(randomizationOutlineColor);
+            _randomizationCanvasButton.Text = canvasText;
+            _randomizationCanvasButton.Checked = canvasVisible;
+            _randomizationColorButton.Text = colorText;
+
+            _isCanvasRandomizationVisible = canvasVisible;
+            _randomizationOutlineColor = outlineColor;
+
+            tilemapEditorControl1.SetHighlightOutlineColor(_randomizationOutlineColor);
             tilePicker1.SetHighlightVisible(false);
-        }
-
-        private void EnsureRandomizationButtons()
-        {
-            if (randomizationCanvasButton != null && randomizationColorButton != null)
-                return;
-
-            randomizationCanvasButton = new ToolStripButton();
-            randomizationCanvasButton.CheckOnClick = true;
-            randomizationCanvasButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            randomizationCanvasButton.Name = "randomizationCanvasButton";
-            randomizationCanvasButton.Click += randomizationCanvasButton_Click;
-
-            randomizationColorButton = new ToolStripButton();
-            randomizationColorButton.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            randomizationColorButton.Name = "randomizationColorButton";
-            randomizationColorButton.Click += randomizationColorButton_Click;
-
-            toolStrip1.Items.Add(new ToolStripSeparator());
-            toolStrip1.Items.Add(randomizationCanvasButton);
-            toolStrip1.Items.Add(randomizationColorButton);
-        }
-
-        private void randomizationCanvasButton_Click(object sender, EventArgs e)
-        {
-            canvasRandomizationVisible = randomizationCanvasButton.Checked;
-            tilemapEditorControl1.SetHighlightVisible(canvasRandomizationVisible);
-            CanvasRandomizationVisibilityChanged?.Invoke(canvasRandomizationVisible);
-        }
-
-        private void randomizationColorButton_Click(object sender, EventArgs e)
-        {
-            using (ColorDialog dlg = new ColorDialog())
-            {
-                dlg.AllowFullOpen = true;
-                dlg.FullOpen = true;
-                dlg.Color = randomizationOutlineColor;
-
-                if (dlg.ShowDialog() != DialogResult.OK)
-                    return;
-
-                randomizationOutlineColor = dlg.Color;
-                tilemapEditorControl1.SetHighlightOutlineColor(randomizationOutlineColor);
-                RandomizationOutlineColorChanged?.Invoke(randomizationOutlineColor);
-            }
         }
 
         public void SetCanvasRandomizationOverlay(IEnumerable<int> tileNumbers, bool visible)
         {
-            canvasRandomizationTiles = tileNumbers == null ? new HashSet<int>() : new HashSet<int>(tileNumbers);
-            canvasRandomizationVisible = visible;
-            tilemapEditorControl1.SetHighlightTiles(canvasRandomizationTiles);
-            tilemapEditorControl1.SetHighlightVisible(canvasRandomizationVisible);
+            _canvasRandomizationTiles = tileNumbers == null
+                ? new HashSet<int>()
+                : new HashSet<int>(tileNumbers);
+
+            _isCanvasRandomizationVisible = visible;
+
+            tilemapEditorControl1.SetHighlightTiles(_canvasRandomizationTiles);
+            tilemapEditorControl1.SetHighlightVisible(_isCanvasRandomizationVisible);
             tilePicker1.SetHighlightVisible(false);
 
-            if (randomizationCanvasButton != null)
-                randomizationCanvasButton.Checked = canvasRandomizationVisible;
+            if (_randomizationCanvasButton != null)
+                _randomizationCanvasButton.Checked = _isCanvasRandomizationVisible;
         }
 
-        private void uncheckButtons()
+        // ── Tool selection helpers ─────────────────────────────────────────────
+        private void ClearToolButtonSelection()
         {
-            foreach (ToolStripButton button in buttons)
+            foreach (ToolStripButton button in _toolButtons)
                 button.Checked = false;
         }
 
-        private void drawToolButton_Click(object sender, EventArgs e)
+        private void SelectMode(TilemapEditorControl.EditionMode mode, ToolStripButton selectedButton)
         {
-            tilemapEditorControl1.mode = TilemapEditorControl.EditionMode.DRAW;
-            uncheckButtons();
-            drawToolButton.Checked = true;
+            tilemapEditorControl1.mode = mode;
+            ClearToolButtonSelection();
+            selectedButton.Checked = true;
         }
 
-        private void xFlipToolButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.mode = TilemapEditorControl.EditionMode.XFLIP;
-            uncheckButtons();
-            xFlipToolButton.Checked = true;
-        }
-
-        private void yFlipToolButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.mode = TilemapEditorControl.EditionMode.YFLIP;
-            uncheckButtons();
-            yFlipToolButton.Checked = true;
-        }
-
-        private void copyToolButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.mode = TilemapEditorControl.EditionMode.COPY;
-            uncheckButtons();
-            copyToolButton.Checked = true;
-        }
-
-        private void pasteToolButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.mode = TilemapEditorControl.EditionMode.PASTE;
-            uncheckButtons();
-            pasteToolButton.Checked = true;
-        }
-        private void changePalToolButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.mode = TilemapEditorControl.EditionMode.CHANGEPAL;
-            uncheckButtons();
-            changePalToolButton.Checked = true;
-        }
-
-        public void showSaveButton()
-        {
-            saveButton.Visible = true;
-            toolStripSeparator1.Visible = true;
-        }
-        private void saveButton_Click(object sender, EventArgs e)
-        {
-            t.save();
-        }
-
-        private void tilemapEditorControl1_MouseDown(object sender, MouseEventArgs e)
-        {
-
-        }
-
-        private void gridButton_CheckStateChanged(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.showGrid = gridButton.Checked;
-            tilemapEditorControl1.Invalidate(true);
-        }
-
-        private void zoomInButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.ZoomIn();
-            UpdateZoomButtons();
-        }
-
-        private void zoomActualSizeButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.ZoomActualSize();
-            UpdateZoomButtons();
-        }
-
-        private void zoomOutButton_Click(object sender, EventArgs e)
-        {
-            tilemapEditorControl1.ZoomOut();
-            UpdateZoomButtons();
-        }
-
-        private void tilemapEditorControl1_ZoomChanged(object sender, EventArgs e)
-        {
-            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
-            RefreshCanvasPanelWidth();
-            LayoutBackgroundInfoPanel();
-            UpdateZoomButtons();
-        }
-
+        // ── Zoom helpers ───────────────────────────────────────────────────────
         private void UpdateZoomButtons()
         {
             zoomInButton.Enabled = tilemapEditorControl1.CanZoomIn;
@@ -273,138 +178,122 @@ namespace NSMBe5.TilemapEditor
             panel1.Width = tilemapEditorControl1.Width + 30;
         }
 
-        private void InitializeBackgroundInfoPanel()
+        // ── Randomization helpers ──────────────────────────────────────────────
+        private void EnsureRandomizationButtons()
         {
-            backgroundFilesGroup = new GroupBox();
-            backgroundFilesGroup.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            backgroundFilesGroup.Location = new Point(8, 168);
-            backgroundFilesGroup.Size = new Size(Math.Max(220, panel2.Width - 16), 156);
-            backgroundFilesGroup.Text = LanguageManager.Get("TilemapEditor", "bgFilesGroup");
-            backgroundFilesGroup.Visible = false;
-
-            graphicsFileLabel = new Label();
-            graphicsFileLabel.AutoEllipsis = true;
-            graphicsFileLabel.Location = new Point(10, 24);
-            graphicsFileLabel.Size = new Size(backgroundFilesGroup.Width - 20, 20);
-            graphicsFileLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
-            paletteFileLabel = new Label();
-            paletteFileLabel.AutoEllipsis = true;
-            paletteFileLabel.Location = new Point(10, 47);
-            paletteFileLabel.Size = new Size(backgroundFilesGroup.Width - 20, 20);
-            paletteFileLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
-            layoutFileLabel = new Label();
-            layoutFileLabel.AutoEllipsis = true;
-            layoutFileLabel.Location = new Point(10, 70);
-            layoutFileLabel.Size = new Size(backgroundFilesGroup.Width - 20, 20);
-            layoutFileLabel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-
-            exportBackgroundFilesButton = new Button();
-            exportBackgroundFilesButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            exportBackgroundFilesButton.Location = new Point(10, 95);
-            exportBackgroundFilesButton.Size = new Size(backgroundFilesGroup.Width - 20, 24);
-            exportBackgroundFilesButton.Text = LanguageManager.Get("TilemapEditor", "bgExportAllButton");
-            exportBackgroundFilesButton.Click += exportBackgroundFilesButton_Click;
-
-            importBackgroundFilesButton = new Button();
-            importBackgroundFilesButton.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            importBackgroundFilesButton.Location = new Point(10, 120);
-            importBackgroundFilesButton.Size = new Size(backgroundFilesGroup.Width - 20, 24);
-            importBackgroundFilesButton.Text = LanguageManager.Get("TilemapEditor", "bgImportAllButton");
-            importBackgroundFilesButton.Click += importBackgroundFilesButton_Click;
-
-            backgroundFilesGroup.Controls.Add(graphicsFileLabel);
-            backgroundFilesGroup.Controls.Add(paletteFileLabel);
-            backgroundFilesGroup.Controls.Add(layoutFileLabel);
-            backgroundFilesGroup.Controls.Add(exportBackgroundFilesButton);
-            backgroundFilesGroup.Controls.Add(importBackgroundFilesButton);
-            panel2.Controls.Add(backgroundFilesGroup);
-            panel2.Resize += panel2_Resize;
-        }
-
-        private void panel2_Resize(object sender, EventArgs e)
-        {
-            if (backgroundFilesGroup == null)
+            if (_randomizationCanvasButton != null && _randomizationColorButton != null)
                 return;
 
-            backgroundFilesGroup.Width = Math.Max(220, panel2.Width - 16);
-            int contentWidth = backgroundFilesGroup.Width - 20;
-            graphicsFileLabel.Width = contentWidth;
-            paletteFileLabel.Width = contentWidth;
-            layoutFileLabel.Width = contentWidth;
-            exportBackgroundFilesButton.Width = contentWidth;
-            importBackgroundFilesButton.Width = contentWidth;
-            LayoutBackgroundInfoPanel();
+            _randomizationCanvasButton = new ToolStripButton
+            {
+                CheckOnClick = true,
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Name = "randomizationCanvasButton"
+            };
+            _randomizationCanvasButton.Click += RandomizationCanvasButtonClickHandler;
+
+            _randomizationColorButton = new ToolStripButton
+            {
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                Name = "randomizationColorButton"
+            };
+            _randomizationColorButton.Click += RandomizationColorButtonClickHandler;
+
+            toolStrip1.Items.Add(new ToolStripSeparator());
+            toolStrip1.Items.Add(_randomizationCanvasButton);
+            toolStrip1.Items.Add(_randomizationColorButton);
+        }
+
+        // ── Background file helpers ────────────────────────────────────────────
+        private void InitializeBackgroundInfoPanel()
+        {
+            _backgroundFilesGroup = new GroupBox
+            {
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                Location = new Point(8, 168),
+                Size = new Size(Math.Max(220, panel2.Width - 16), 156),
+                Text = LanguageManager.Get("TilemapEditor", "bgFilesGroup"),
+                Visible = false
+            };
+
+            _graphicsFileLabel = CreateBackgroundFileLabel(24);
+            _paletteFileLabel = CreateBackgroundFileLabel(47);
+            _layoutFileLabel = CreateBackgroundFileLabel(70);
+
+            _exportBackgroundFilesButton = CreateBackgroundFileButton(
+                y: 95,
+                textKey: "bgExportAllButton",
+                clickHandler: ExportBackgroundFilesButtonClickHandler);
+
+            _importBackgroundFilesButton = CreateBackgroundFileButton(
+                y: 120,
+                textKey: "bgImportAllButton",
+                clickHandler: ImportBackgroundFilesButtonClickHandler);
+
+            _backgroundFilesGroup.Controls.Add(_graphicsFileLabel);
+            _backgroundFilesGroup.Controls.Add(_paletteFileLabel);
+            _backgroundFilesGroup.Controls.Add(_layoutFileLabel);
+            _backgroundFilesGroup.Controls.Add(_exportBackgroundFilesButton);
+            _backgroundFilesGroup.Controls.Add(_importBackgroundFilesButton);
+
+            panel2.Controls.Add(_backgroundFilesGroup);
+            panel2.Resize += Panel2ResizeHandler;
+        }
+
+        private Label CreateBackgroundFileLabel(int y)
+        {
+            return new Label
+            {
+                AutoEllipsis = true,
+                Location = new Point(10, y),
+                Size = new Size(_backgroundFilesGroup.Width - 20, 20),
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right
+            };
+        }
+
+        private Button CreateBackgroundFileButton(int y, string textKey, EventHandler clickHandler)
+        {
+            Button button = new Button
+            {
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                Location = new Point(10, y),
+                Size = new Size(_backgroundFilesGroup.Width - 20, 24),
+                Text = LanguageManager.Get("TilemapEditor", textKey)
+            };
+
+            button.Click += clickHandler;
+            return button;
         }
 
         private void LayoutBackgroundInfoPanel()
         {
-            if (backgroundFilesGroup == null)
+            if (_backgroundFilesGroup == null)
                 return;
 
             int y = tilePicker1.Bottom + 8;
             if (y < 8)
                 y = 8;
-            backgroundFilesGroup.Location = new Point(8, y);
+
+            _backgroundFilesGroup.Location = new Point(8, y);
         }
 
         private void UpdateBackgroundFileInfo()
         {
-            bool hasFiles = backgroundGraphicsFile != null && backgroundPaletteFile != null && backgroundLayoutFile != null;
-            backgroundFilesGroup.Visible = hasFiles;
+            bool hasFiles = CanUseBackgroundFiles();
+            _backgroundFilesGroup.Visible = hasFiles;
             if (!hasFiles)
                 return;
 
-            graphicsFileLabel.Text = string.Format("{0} {1}", LanguageManager.Get("TilemapEditor", "graphicsFileLabel"), backgroundGraphicsFile.name);
-            paletteFileLabel.Text = string.Format("{0} {1}", LanguageManager.Get("TilemapEditor", "paletteFileLabel"), backgroundPaletteFile.name);
-            layoutFileLabel.Text = string.Format("{0} {1}", LanguageManager.Get("TilemapEditor", "layoutFileLabel"), backgroundLayoutFile.name);
-        }
-
-        private void exportBackgroundFilesButton_Click(object sender, EventArgs e)
-        {
-            if (!CanUseBackgroundFiles())
-                return;
-
-            using (FolderBrowserDialog dialog = new FolderBrowserDialog())
-            {
-                if (dialog.ShowDialog(this) != DialogResult.OK)
-                    return;
-
-                WriteFileToDirectory(backgroundGraphicsFile, dialog.SelectedPath);
-                WriteFileToDirectory(backgroundPaletteFile, dialog.SelectedPath);
-                WriteFileToDirectory(backgroundLayoutFile, dialog.SelectedPath);
-            }
-        }
-
-        private void importBackgroundFilesButton_Click(object sender, EventArgs e)
-        {
-            if (!CanUseBackgroundFiles())
-                return;
-
-            string ncgPath = PromptBackgroundImportFile("_ncg");
-            if (ncgPath == null) return;
-            string nclPath = PromptBackgroundImportFile("_ncl");
-            if (nclPath == null) return;
-            string nscPath = PromptBackgroundImportFile("_nsc");
-            if (nscPath == null) return;
-
-            try
-            {
-                ReplaceBackgroundFile(backgroundGraphicsFile, IOFile.ReadAllBytes(ncgPath));
-                ReplaceBackgroundFile(backgroundPaletteFile, IOFile.ReadAllBytes(nclPath));
-                ReplaceBackgroundFile(backgroundLayoutFile, IOFile.ReadAllBytes(nscPath));
-                RefreshAfterBackgroundImport();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(this, ex.Message, LanguageManager.Get("Errors", "errortitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            _graphicsFileLabel.Text = $"{LanguageManager.Get("TilemapEditor", "graphicsFileLabel")} {_backgroundGraphicsFile.name}";
+            _paletteFileLabel.Text = $"{LanguageManager.Get("TilemapEditor", "paletteFileLabel")} {_backgroundPaletteFile.name}";
+            _layoutFileLabel.Text = $"{LanguageManager.Get("TilemapEditor", "layoutFileLabel")} {_backgroundLayoutFile.name}";
         }
 
         private bool CanUseBackgroundFiles()
         {
-            return backgroundGraphicsFile != null && backgroundPaletteFile != null && backgroundLayoutFile != null;
+            return _backgroundGraphicsFile != null
+                && _backgroundPaletteFile != null
+                && _backgroundLayoutFile != null;
         }
 
         private static void WriteFileToDirectory(DSFile file, string directoryPath)
@@ -419,7 +308,8 @@ namespace NSMBe5.TilemapEditor
             {
                 dialog.CheckFileExists = true;
                 dialog.Filter = LanguageManager.Get("Filters", "all");
-                dialog.Title = string.Format("{0} ({1})", LanguageManager.Get("TilemapEditor", "bgImportAllButton"), suffix);
+                dialog.Title = $"{LanguageManager.Get("TilemapEditor", "bgImportAllButton")} ({suffix})";
+
                 if (dialog.ShowDialog(this) != DialogResult.OK)
                     return null;
 
@@ -429,9 +319,9 @@ namespace NSMBe5.TilemapEditor
 
         private void ReplaceBackgroundFile(DSFile targetFile, byte[] newContents)
         {
-            if (targetFile.beingEditedBy(t))
+            if (targetFile.beingEditedBy(_tilemap))
             {
-                targetFile.replace(newContents, t);
+                targetFile.replace(newContents, _tilemap);
                 return;
             }
 
@@ -449,13 +339,170 @@ namespace NSMBe5.TilemapEditor
 
         private void RefreshAfterBackgroundImport()
         {
-            t.ReloadResources(true, true, true);
+            _tilemap.ReloadResources(true, true, true);
             tilemapEditorControl1.ReloadFromTilemap();
-            tilePicker1.init(t.buffers, 8);
+            tilePicker1.init(_tilemap.buffers, 8);
             tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+
             RefreshCanvasPanelWidth();
+
             tilemapEditorControl1.Invalidate(true);
             tilePicker1.Invalidate(true);
+        }
+
+        // ── Event handlers ─────────────────────────────────────────────────────
+        private void DrawToolButtonClickHandler(object sender, EventArgs e)
+        {
+            SelectMode(TilemapEditorControl.EditionMode.DRAW, drawToolButton);
+        }
+
+        private void XFlipToolButtonClickHandler(object sender, EventArgs e)
+        {
+            SelectMode(TilemapEditorControl.EditionMode.XFLIP, xFlipToolButton);
+        }
+
+        private void YFlipToolButtonClickHandler(object sender, EventArgs e)
+        {
+            SelectMode(TilemapEditorControl.EditionMode.YFLIP, yFlipToolButton);
+        }
+
+        private void CopyToolButtonClickHandler(object sender, EventArgs e)
+        {
+            SelectMode(TilemapEditorControl.EditionMode.COPY, copyToolButton);
+        }
+
+        private void PasteToolButtonClickHandler(object sender, EventArgs e)
+        {
+            SelectMode(TilemapEditorControl.EditionMode.PASTE, pasteToolButton);
+        }
+
+        private void ChangePalToolButtonClickHandler(object sender, EventArgs e)
+        {
+            SelectMode(TilemapEditorControl.EditionMode.CHANGEPAL, changePalToolButton);
+        }
+
+        private void SaveButtonClickHandler(object sender, EventArgs e)
+        {
+            _tilemap.save();
+        }
+
+        private void GridButtonCheckStateChangedHandler(object sender, EventArgs e)
+        {
+            tilemapEditorControl1.showGrid = gridButton.Checked;
+            tilemapEditorControl1.Invalidate(true);
+        }
+
+        private void ZoomInButtonClickHandler(object sender, EventArgs e)
+        {
+            tilemapEditorControl1.ZoomIn();
+            UpdateZoomButtons();
+        }
+
+        private void ZoomActualSizeButtonClickHandler(object sender, EventArgs e)
+        {
+            tilemapEditorControl1.ZoomActualSize();
+            UpdateZoomButtons();
+        }
+
+        private void ZoomOutButtonClickHandler(object sender, EventArgs e)
+        {
+            tilemapEditorControl1.ZoomOut();
+            UpdateZoomButtons();
+        }
+
+        private void TilemapEditorControl1_ZoomChanged(object sender, EventArgs e)
+        {
+            tilePicker1.SetZoom(tilemapEditorControl1.zoomLevel);
+            RefreshCanvasPanelWidth();
+            LayoutBackgroundInfoPanel();
+            UpdateZoomButtons();
+        }
+
+        private void RandomizationCanvasButtonClickHandler(object sender, EventArgs e)
+        {
+            _isCanvasRandomizationVisible = _randomizationCanvasButton.Checked;
+            tilemapEditorControl1.SetHighlightVisible(_isCanvasRandomizationVisible);
+            CanvasRandomizationVisibilityChanged?.Invoke(_isCanvasRandomizationVisible);
+        }
+
+        private void RandomizationColorButtonClickHandler(object sender, EventArgs e)
+        {
+            using (ColorDialog dialog = new ColorDialog())
+            {
+                dialog.AllowFullOpen = true;
+                dialog.FullOpen = true;
+                dialog.Color = _randomizationOutlineColor;
+
+                if (dialog.ShowDialog() != DialogResult.OK)
+                    return;
+
+                _randomizationOutlineColor = dialog.Color;
+                tilemapEditorControl1.SetHighlightOutlineColor(_randomizationOutlineColor);
+                RandomizationOutlineColorChanged?.Invoke(_randomizationOutlineColor);
+            }
+        }
+
+        private void Panel2ResizeHandler(object sender, EventArgs e)
+        {
+            if (_backgroundFilesGroup == null)
+                return;
+
+            _backgroundFilesGroup.Width = Math.Max(220, panel2.Width - 16);
+
+            int contentWidth = _backgroundFilesGroup.Width - 20;
+            _graphicsFileLabel.Width = contentWidth;
+            _paletteFileLabel.Width = contentWidth;
+            _layoutFileLabel.Width = contentWidth;
+            _exportBackgroundFilesButton.Width = contentWidth;
+            _importBackgroundFilesButton.Width = contentWidth;
+
+            LayoutBackgroundInfoPanel();
+        }
+
+        private void ExportBackgroundFilesButtonClickHandler(object sender, EventArgs e)
+        {
+            if (!CanUseBackgroundFiles())
+                return;
+
+            using (FolderBrowserDialog dialog = new FolderBrowserDialog())
+            {
+                if (dialog.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                WriteFileToDirectory(_backgroundGraphicsFile, dialog.SelectedPath);
+                WriteFileToDirectory(_backgroundPaletteFile, dialog.SelectedPath);
+                WriteFileToDirectory(_backgroundLayoutFile, dialog.SelectedPath);
+            }
+        }
+
+        private void ImportBackgroundFilesButtonClickHandler(object sender, EventArgs e)
+        {
+            if (!CanUseBackgroundFiles())
+                return;
+
+            string ncgPath = PromptBackgroundImportFile("_ncg");
+            if (ncgPath == null)
+                return;
+
+            string nclPath = PromptBackgroundImportFile("_ncl");
+            if (nclPath == null)
+                return;
+
+            string nscPath = PromptBackgroundImportFile("_nsc");
+            if (nscPath == null)
+                return;
+
+            try
+            {
+                ReplaceBackgroundFile(_backgroundGraphicsFile, IOFile.ReadAllBytes(ncgPath));
+                ReplaceBackgroundFile(_backgroundPaletteFile, IOFile.ReadAllBytes(nclPath));
+                ReplaceBackgroundFile(_backgroundLayoutFile, IOFile.ReadAllBytes(nscPath));
+                RefreshAfterBackgroundImport();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, ex.Message, LanguageManager.Get("Errors", "errortitle"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

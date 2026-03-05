@@ -37,7 +37,7 @@ namespace NSMBe5
         // ── Behavior-shape overlay ────────────────────────────────────────────
         private const int BehaviorOverlaySpriteSize = 16;
 
-        // Sprite-sheet column indices — adjust to match your sheet.
+        // Sprite-sheet column indices
         private const int SpriteIdxCoin                = 25;
         private const int SpriteIdxQuestion            = 23;
         private const int SpriteIdxExplodable          = 18;

@@ -85,7 +85,7 @@ namespace NSMBe5
             objectPickerControl1.CurrentTileset = TilesetNumber;
 
             tilesetObjectEditor1.load(g, TilesetNumber);
-            tilemapEditor1.load(t.map16);
+            tilemapEditor1.LoadTilemap(t.map16);
             tilemapEditor1.ConfigureRandomizationToggleButtons(
                 Properties.Settings.Default.ShowMap16RandomizationHighlight,
                 Color.FromArgb(Properties.Settings.Default.Map16RandomizationOutlineColorArgb),
@@ -152,7 +152,7 @@ namespace NSMBe5
         {
             t.map16.reRenderAll();
             tilemapEditor1.Invalidate(true);
-            tilemapEditor1.reload();
+            tilemapEditor1.Reload();
         }
 
         private void TilesetEditor_FormClosed(object sender, FormClosedEventArgs e)

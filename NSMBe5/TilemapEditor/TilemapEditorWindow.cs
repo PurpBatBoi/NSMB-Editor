@@ -41,8 +41,8 @@ namespace NSMBe5.TilemapEditor
             LanguageManager.ApplyToContainer(this, "TilemapEditor");
             this.t = t;
             t.beginEdit();
-            tilemapEditor1.showSaveButton();
-            tilemapEditor1.load(t);
+            tilemapEditor1.ShowSaveButton();
+            tilemapEditor1.LoadTilemap(t);
             tilemapEditor1.SetBackgroundFiles(graphicsFile, paletteFile, layoutFile);
         }
 

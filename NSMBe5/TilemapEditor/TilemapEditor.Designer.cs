@@ -122,7 +122,7 @@
             this.saveButton.Size = new System.Drawing.Size(23, 22);
             this.saveButton.Text = "<Save>";
             this.saveButton.Visible = false;
-            this.saveButton.Click += new System.EventHandler(this.saveButton_Click);
+            this.saveButton.Click += new System.EventHandler(this.SaveButtonClickHandler);
             // 
             // toolStripSeparator1
             // 
@@ -141,7 +141,7 @@
             this.drawToolButton.Name = "drawToolButton";
             this.drawToolButton.Size = new System.Drawing.Size(23, 22);
             this.drawToolButton.Text = "<Draw (d)>";
-            this.drawToolButton.Click += new System.EventHandler(this.drawToolButton_Click);
+            this.drawToolButton.Click += new System.EventHandler(this.DrawToolButtonClickHandler);
             // 
             // xFlipToolButton
             // 
@@ -152,7 +152,7 @@
             this.xFlipToolButton.Name = "xFlipToolButton";
             this.xFlipToolButton.Size = new System.Drawing.Size(23, 22);
             this.xFlipToolButton.Text = "<Horizontal flip (x)>";
-            this.xFlipToolButton.Click += new System.EventHandler(this.xFlipToolButton_Click);
+            this.xFlipToolButton.Click += new System.EventHandler(this.XFlipToolButtonClickHandler);
             // 
             // yFlipToolButton
             // 
@@ -163,7 +163,7 @@
             this.yFlipToolButton.Name = "yFlipToolButton";
             this.yFlipToolButton.Size = new System.Drawing.Size(23, 22);
             this.yFlipToolButton.Text = "<Vertical flip (y)>";
-            this.yFlipToolButton.Click += new System.EventHandler(this.yFlipToolButton_Click);
+            this.yFlipToolButton.Click += new System.EventHandler(this.YFlipToolButtonClickHandler);
             // 
             // copyToolButton
             // 
@@ -174,7 +174,7 @@
             this.copyToolButton.Name = "copyToolButton";
             this.copyToolButton.Size = new System.Drawing.Size(23, 22);
             this.copyToolButton.Text = "<Copy (c)>";
-            this.copyToolButton.Click += new System.EventHandler(this.copyToolButton_Click);
+            this.copyToolButton.Click += new System.EventHandler(this.CopyToolButtonClickHandler);
             // 
             // pasteToolButton
             // 
@@ -185,7 +185,7 @@
             this.pasteToolButton.Name = "pasteToolButton";
             this.pasteToolButton.Size = new System.Drawing.Size(23, 22);
             this.pasteToolButton.Text = "<Paste (v)>";
-            this.pasteToolButton.Click += new System.EventHandler(this.pasteToolButton_Click);
+            this.pasteToolButton.Click += new System.EventHandler(this.PasteToolButtonClickHandler);
             // 
             // changePalToolButton
             // 
@@ -196,7 +196,7 @@
             this.changePalToolButton.Name = "changePalToolButton";
             this.changePalToolButton.Size = new System.Drawing.Size(23, 22);
             this.changePalToolButton.Text = "<Change Palette (p)>";
-            this.changePalToolButton.Click += new System.EventHandler(this.changePalToolButton_Click);
+            this.changePalToolButton.Click += new System.EventHandler(this.ChangePalToolButtonClickHandler);
             // 
             // toolStripSeparator2
             // 
@@ -237,7 +237,7 @@
             this.gridButton.Name = "gridButton";
             this.gridButton.Size = new System.Drawing.Size(23, 22);
             this.gridButton.Text = "<Show Grid>";
-            this.gridButton.CheckStateChanged += new System.EventHandler(this.gridButton_CheckStateChanged);
+            this.gridButton.CheckStateChanged += new System.EventHandler(this.GridButtonCheckStateChangedHandler);
             // 
             // toolStripSeparator4
             // 
@@ -253,7 +253,7 @@
             this.zoomOutButton.Name = "zoomOutButton";
             this.zoomOutButton.Size = new System.Drawing.Size(23, 22);
             this.zoomOutButton.Text = "<Zoom Out>";
-            this.zoomOutButton.Click += new System.EventHandler(this.zoomOutButton_Click);
+            this.zoomOutButton.Click += new System.EventHandler(this.ZoomOutButtonClickHandler);
             // 
             // zoomActualSizeButton
             // 
@@ -264,7 +264,7 @@
             this.zoomActualSizeButton.Name = "zoomActualSizeButton";
             this.zoomActualSizeButton.Size = new System.Drawing.Size(23, 22);
             this.zoomActualSizeButton.Text = "<Zoom 100%>";
-            this.zoomActualSizeButton.Click += new System.EventHandler(this.zoomActualSizeButton_Click);
+            this.zoomActualSizeButton.Click += new System.EventHandler(this.ZoomActualSizeButtonClickHandler);
             // 
             // zoomInButton
             // 
@@ -274,7 +274,7 @@
             this.zoomInButton.Name = "zoomInButton";
             this.zoomInButton.Size = new System.Drawing.Size(23, 22);
             this.zoomInButton.Text = "<Zoom In>";
-            this.zoomInButton.Click += new System.EventHandler(this.zoomInButton_Click);
+            this.zoomInButton.Click += new System.EventHandler(this.ZoomInButtonClickHandler);
             // 
             // tilePicker1
             // 
