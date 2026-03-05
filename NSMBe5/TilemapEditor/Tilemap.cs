@@ -1,94 +1,71 @@
 ﻿/*
-*   This file is part of NSMB Editor 5.
-*
-*   NSMB Editor 5 is free software: you can redistribute it and/or modify
-*   it under the terms of the GNU General Public License as published by
-*   the Free Software Foundation, either version 3 of the License, or
-*   (at your option) any later version.
-*
-*   NSMB Editor 5 is distributed in the hope that it will be useful,
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-*   GNU General Public License for more details.
-*
-*   You should have received a copy of the GNU General Public License
-*   along with NSMB Editor 5.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ * This file is part of NSMB Editor 5.
+ *
+ * NSMB Editor 5 is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * NSMB Editor 5 is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with NSMB Editor 5. If not, see <http://www.gnu.org/licenses/>.
+ */
 
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NSMBe5.DSFileSystem;
 using System.Drawing;
+using NSMBe5.DSFileSystem;
 
 namespace NSMBe5
 {
     public class Tilemap
     {
-        public Tile[,] tiles;
-        public int width, height;
-        protected File f;
+        // ── Constants ─────────────────────────────────────────────────────────
+        private const int TilePixelSize = 8;
 
+        // ── Public state ──────────────────────────────────────────────────────
+        public Tile[,]   tiles;
+        public int       width;
+        public int       height;
         public Palette[] palettes;
-        public Image2D tileset;
-        public int tileCount;
+        public Image2D   tileset;
+        public int       tileCount;
+        public int       tileOffset;
+        public int       paletteOffset;
+        public Bitmap[]  buffers;
+        public Bitmap    buffer;
 
-        public Bitmap[] buffers;
+        // ── Protected state ───────────────────────────────────────────────────
+        protected File _file;
 
-        public int tileOffset;
-        public int paletteOffset;
+        // ── Private state ─────────────────────────────────────────────────────
+        private Graphics _bufferGraphics;
 
-        public Tilemap(File f, int tileWidth, Image2D i, Palette[] pals, int tileOffset, int paletteOffset)
+        // ── Construction ──────────────────────────────────────────────────────
+
+        public Tilemap(File file, int tileWidth, Image2D tileset, Palette[] palettes, int tileOffset, int paletteOffset)
         {
-            this.f = f;
-            this.width = tileWidth;
-            this.tileOffset = tileOffset;
+            _file              = file;
+            width              = tileWidth;
+            this.tileOffset    = tileOffset;
             this.paletteOffset = paletteOffset;
+            this.tileset       = tileset;
+            this.palettes      = palettes;
+            tileCount          = tileset.getWidth() * tileset.getHeight() / 64;
 
-            this.tileset = i;
-            this.palettes = pals;
-            this.tileCount = tileset.getWidth() * tileset.getHeight() / 64;
-
-            load();
+            Load();
         }
 
-        public void beginEdit()
-        {
-            f.beginEdit(this);
-        }
+        // ── Public API ────────────────────────────────────────────────────────
 
-        public void endEdit()
-        {
-            f.endEdit(this);
-        }
+        public void BeginEdit() => _file.beginEdit(this);
+        public void EndEdit()   => _file.endEdit(this);
 
-        protected virtual void load()
-        {
-            height = (f.fileSize / 2 + width-1) /width;
-            tiles = new Tile[width, height];
+        public Tile GetTileAtPos(int x, int y) => tiles[x, y];
 
-            ByteArrayInputStream b = new ByteArrayInputStream(f.getContents());
-
-            for (int i = 0; i < f.fileSize / 2; i++)
-            {
-                int x = i % width;
-                int y = i / width;
-                tiles[x,y] = shortToTile(b.readUShort());
-            }
-        }
-
-        public virtual void save()
-        {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-
-            for (int i = 0; i < f.fileSize / 2; i++)
-            {
-                int x = i % width;
-                int y = i / width;
-                os.writeUShort(tileToShort(tiles[x, y]));
-            }
-            f.replace(os.getArray(), this);
-        }
+        public int GetMap16TileCount() => tiles.Length / 4;
 
         public void ReloadResources(bool reloadImage, bool reloadPalettes, bool reloadLayout)
         {
@@ -96,141 +73,186 @@ namespace NSMBe5
                 tileset.reload();
 
             if (reloadPalettes && palettes != null)
-            {
-                foreach (Palette palette in palettes)
-                {
-                    if (palette is FilePalette filePalette)
-                    {
-                        filePalette.pal = FilePalette.arrayToPalette(filePalette.SourceFile.getContents());
-                        if (filePalette.pal.Length > 0)
-                            filePalette.pal[0] = Color.Transparent;
-                    }
-                }
-            }
+                ReloadPalettes();
 
             if (reloadLayout)
-                load();
+                Load();
 
             if (buffers == null || buffer == null)
-                render();
+                Render();
             else
-                reRenderAll();
+                ReRenderAll();
         }
 
-        public Tile getTileAtPos(int x, int y)
-        {
-            return tiles[x,y];
-        }
-
-        public void updateBuffers()
+        public void UpdateBuffers()
         {
             buffers = new Bitmap[palettes.Length];
-
             for (int i = 0; i < palettes.Length; i++)
                 buffers[i] = tileset.render(palettes[i]);
         }
 
-        public Bitmap buffer;
-        Graphics bufferGx;
-
-        public Bitmap render()
+        public Bitmap Render()
         {
-            if(buffers == null)
-                updateBuffers();
+            if (buffers == null)
+                UpdateBuffers();
 
             if (buffer == null)
             {
-                buffer = new Bitmap(width * 8, height * 8, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
-                bufferGx = Graphics.FromImage(buffer);
-                bufferGx.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
+                buffer          = new Bitmap(width * TilePixelSize, height * TilePixelSize,
+                                      System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
+                _bufferGraphics = Graphics.FromImage(buffer);
+                _bufferGraphics.CompositingMode = System.Drawing.Drawing2D.CompositingMode.SourceCopy;
             }
 
-            reRenderAll();
-
+            ReRenderAll();
             return buffer;
         }
 
-        public Bitmap reRenderAll()
+        public Bitmap ReRenderAll()
         {
-            updateBuffers();
-            return reRender(0, 0, width, height);
+            UpdateBuffers();
+            return ReRender(0, 0, width, height);
         }
 
-        public Bitmap reRender(int xMin, int yMin, int width, int height)
+        public Bitmap ReRender(int xMin, int yMin, int regionWidth, int regionHeight)
         {
-            for (int x = xMin; x < xMin+width; x++)
-                for (int y = yMin; y < yMin+height; y++)
+            for (int x = xMin; x < xMin + regionWidth; x++)
+            {
+                for (int y = yMin; y < yMin + regionHeight; y++)
                 {
-                    if (x >= this.width) continue;
-                    if (y >= this.height) continue;
+                    if (x >= width || y >= height)
+                        continue;
+
                     Tile t = tiles[x, y];
 
                     if (t.tileNum < 0 || t.tileNum >= tileCount)
                     {
-                        bufferGx.FillRectangle(Brushes.Transparent, x * 8, y * 8, 8, 8);
+                        _bufferGraphics.FillRectangle(Brushes.Transparent,
+                            x * TilePixelSize, y * TilePixelSize, TilePixelSize, TilePixelSize);
                         continue;
                     }
-                    if (t.palNum >= palettes.Length) continue;
-                    if (t.palNum < 0) continue;
-//                    if (t.hflip == false && t.vflip == false)
 
-                    Rectangle rect = Image2D.getTileRectangle(buffers[t.palNum], 8, t.tileNum);
-                    using (Bitmap tileSrc = new Bitmap(8, 8, System.Drawing.Imaging.PixelFormat.Format32bppPArgb))
-                    {
-                        using (Graphics g = Graphics.FromImage(tileSrc))
-                        {
-                            g.DrawImage(buffers[t.palNum], new Rectangle(0, 0, 8, 8), rect, GraphicsUnit.Pixel);
-                        }
+                    if (t.palNum < 0 || t.palNum >= palettes.Length)
+                        continue;
 
-                        // Clone the bitmap before flipping to avoid GDI+ issues
-                        using (Bitmap tile = (Bitmap)tileSrc.Clone())
-                        {
-                            if (t.hflip == true && t.vflip == false)
-                                tile.RotateFlip(RotateFlipType.RotateNoneFlipX);
-                            else if (t.hflip == false && t.vflip == true)
-                                tile.RotateFlip(RotateFlipType.RotateNoneFlipY);
-                            else if (t.hflip == true && t.vflip == true)
-                                tile.RotateFlip(RotateFlipType.RotateNoneFlipXY);
-
-                            bufferGx.DrawImage(tile, new Rectangle(x * 8, y * 8, 8, 8), new Rectangle(0, 0, 8, 8), GraphicsUnit.Pixel);
-                        }
-                    }
+                    DrawTile(t, x, y);
                 }
+            }
+
             return buffer;
         }
 
-        public ushort tileToShort(Tile t)
+        public virtual void Save()
         {
-            ushort res = 0;
+            var os = new ByteArrayOutputStream();
 
-            if(t.tileNum != -1)
-                res |= (ushort)((t.tileNum + tileOffset) & 0x3FF);
-            res |= (ushort)((t.hflip ? 1 : 0) << 10);
-            res |= (ushort)((t.vflip ? 1 : 0) << 11);
-            res |= (ushort)(((t.palNum + paletteOffset) & 0x00F) << 12);
+            for (int i = 0; i < _file.fileSize / 2; i++)
+            {
+                int x = i % width;
+                int y = i / width;
+                os.writeUShort(TileToShort(tiles[x, y]));
+            }
 
-            return res;
+            _file.replace(os.getArray(), this);
         }
 
-        public Tile shortToTile(ushort u)
+        // ── Tile encoding / decoding ──────────────────────────────────────────
+
+        public ushort TileToShort(Tile t)
         {
-            Tile res = new Tile();
+            ushort result = 0;
 
-            res.tileNum = (u & 0x3FF) - tileOffset;
-            if (res.tileNum < 0)
-                res.tileNum = -1;
+            if (t.tileNum != -1)
+                result |= (ushort)((t.tileNum + tileOffset) & 0x3FF);
 
-            res.hflip = ((u >> 10) & 1) == 1;
-            res.vflip = ((u >> 11) & 1) == 1;
-            res.palNum = ((u >> 12) & 0xF) - paletteOffset;
+            result |= (ushort)((t.hflip ? 1 : 0) << 10);
+            result |= (ushort)((t.vflip ? 1 : 0) << 11);
+            result |= (ushort)(((t.palNum + paletteOffset) & 0x00F) << 12);
 
-            return res;
+            return result;
         }
+
+        public Tile ShortToTile(ushort value)
+        {
+            var t = new Tile();
+
+            t.tileNum = (value & 0x3FF) - tileOffset;
+            if (t.tileNum < 0)
+                t.tileNum = -1;
+
+            t.hflip  = ((value >> 10) & 1) == 1;
+            t.vflip  = ((value >> 11) & 1) == 1;
+            t.palNum = ((value >> 12) & 0xF) - paletteOffset;
+
+            return t;
+        }
+
+        // ── Protected methods ─────────────────────────────────────────────────
+
+        protected virtual void Load()
+        {
+            height = (_file.fileSize / 2 + width - 1) / width;
+            tiles  = new Tile[width, height];
+
+            var stream = new ByteArrayInputStream(_file.getContents());
+
+            for (int i = 0; i < _file.fileSize / 2; i++)
+            {
+                int x = i % width;
+                int y = i / width;
+                tiles[x, y] = ShortToTile(stream.readUShort());
+            }
+        }
+
+        // ── Private helpers ───────────────────────────────────────────────────
+
+        private void ReloadPalettes()
+        {
+            foreach (Palette palette in palettes)
+            {
+                if (!(palette is FilePalette filePalette))
+                    continue;
+
+                filePalette.pal = FilePalette.arrayToPalette(filePalette.SourceFile.getContents());
+                if (filePalette.pal.Length > 0)
+                    filePalette.pal[0] = Color.Transparent;
+            }
+        }
+
+        private void DrawTile(Tile t, int destX, int destY)
+        {
+            Rectangle srcRect = Image2D.getTileRectangle(buffers[t.palNum], TilePixelSize, t.tileNum);
+            var tileRect      = new Rectangle(0, 0, TilePixelSize, TilePixelSize);
+            var destRect      = new Rectangle(destX * TilePixelSize, destY * TilePixelSize, TilePixelSize, TilePixelSize);
+
+            using (var tileSrc = new Bitmap(TilePixelSize, TilePixelSize, System.Drawing.Imaging.PixelFormat.Format32bppPArgb))
+            {
+                using (Graphics g = Graphics.FromImage(tileSrc))
+                    g.DrawImage(buffers[t.palNum], tileRect, srcRect, GraphicsUnit.Pixel);
+
+                // Clone before flipping — RotateFlip on the source bitmap causes GDI+ issues.
+                using (var tile = (Bitmap)tileSrc.Clone())
+                {
+                    ApplyFlip(tile, t.hflip, t.vflip);
+                    _bufferGraphics.DrawImage(tile, destRect, tileRect, GraphicsUnit.Pixel);
+                }
+            }
+        }
+
+        private static void ApplyFlip(Bitmap bitmap, bool hflip, bool vflip)
+        {
+            if      (hflip && vflip)  bitmap.RotateFlip(RotateFlipType.RotateNoneFlipXY);
+            else if (hflip)           bitmap.RotateFlip(RotateFlipType.RotateNoneFlipX);
+            else if (vflip)           bitmap.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            // No flip needed — leave bitmap unchanged.
+        }
+
+        // ── Tile struct ───────────────────────────────────────────────────────
 
         public struct Tile
         {
-            public int tileNum;
-            public int palNum;
+            public int  tileNum;
+            public int  palNum;
             public bool hflip;
             public bool vflip;
         }

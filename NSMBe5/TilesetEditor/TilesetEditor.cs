@@ -150,7 +150,7 @@ namespace NSMBe5
 
         private void mustRepaintObjects()
         {
-            t.map16.reRenderAll();
+            t.map16.ReRenderAll();
             tilemapEditor1.Invalidate(true);
             tilemapEditor1.Reload();
         }
@@ -505,7 +505,7 @@ namespace NSMBe5
 
         private void ApplyMap16RandomizationOverlay()
         {
-            int tileCount = t.map16.getMap16TileCount();
+            int tileCount = t.map16.GetMap16TileCount();
             HashSet<int> randomizationTiles = Map16RandomizationTable.GetRandomizedTiles(TilesetID, tileCount);
             HashSet<int> canvasTiles8x8 = ExpandMap16TilesTo8x8Layout(randomizationTiles);
 

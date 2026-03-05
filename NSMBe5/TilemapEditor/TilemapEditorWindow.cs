@@ -38,7 +38,7 @@ namespace NSMBe5.TilemapEditor
             LanguageManager.ApplyToContainer(this, "TilemapEditor");
 
             _tilemap = tilemap;
-            _tilemap.beginEdit();
+            _tilemap.BeginEdit();
 
             tilemapEditor1.ShowSaveButton();
             tilemapEditor1.LoadTilemap(_tilemap);
@@ -49,7 +49,7 @@ namespace NSMBe5.TilemapEditor
 
         private void TilemapEditorWindow_FormClosing(object sender, FormClosingEventArgs e)
         {
-            _tilemap.endEdit();
+            _tilemap.EndEdit();
         }
     }
 }

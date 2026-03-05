@@ -96,7 +96,7 @@ namespace NSMBe5
         public void LoadTilemap(Tilemap tilemap)
         {
             Tilemap = tilemap;
-            tilemap.render();
+            tilemap.Render();
 
             ZoomLevel    = 1;
             TileSize     = BaseTileSize;
@@ -354,7 +354,7 @@ namespace NSMBe5
                 case EditionMode.ChangePal: ApplyChangePal(); break;
             }
 
-            Tilemap.reRender(SelTileX, SelTileY, SelTileWidth, SelTileHeight);
+            Tilemap.ReRender(SelTileX, SelTileY, SelTileWidth, SelTileHeight);
             pictureBox1.Invalidate(true);
 
             // Save the post-edit tile state into the undo entry.
@@ -546,7 +546,7 @@ namespace NSMBe5
 
             if (keyData == (Keys.Control | Keys.Z)) { Undo(null, null); return true; }
             if (keyData == (Keys.Control | Keys.Y)) { Redo(null, null); return true; }
-            if (keyData == (Keys.Control | Keys.S)) { Tilemap.save();   return true; }
+            if (keyData == (Keys.Control | Keys.S)) { Tilemap.Save();   return true; }
 
             return base.ProcessCmdKey(ref msg, keyData);
         }
@@ -622,7 +622,7 @@ namespace NSMBe5
         public void Undo(Tilemap.Tile[,] allTiles) => PasteRegion(OldTiles, allTiles);
         public void Redo(Tilemap.Tile[,] allTiles) => PasteRegion(NewTiles, allTiles);
 
-        public void ReRender(Tilemap tilemap) => tilemap.reRender(X, Y, Width, Height);
+        public void ReRender(Tilemap tilemap) => tilemap.ReRender(X, Y, Width, Height);
 
         // ── Private helpers ───────────────────────────────────────────────────
 

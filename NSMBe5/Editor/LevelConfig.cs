@@ -199,7 +199,7 @@ namespace NSMBe5 {
             Palette pal2 = new FilePalette(new InlineFile(PalFile, 512, 512, PalFile.name));
 
             Tilemap t = new Tilemap(LayoutFile, 64, i, new Palette[] { pal1, pal2 }, offs, palOffs);
-            t.render();
+            t.Render();
             return t.buffer;
         }
 

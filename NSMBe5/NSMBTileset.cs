@@ -257,8 +257,8 @@ namespace NSMBe5
 
             //Map16
             map16 = new Map16Tilemap(Map16File, 32, graphics, palettes, Map16TileOffset, Map16PaletteOffset);
-            Overrides = new short[map16.getMap16TileCount()];
-            Map16Buffer = map16.render();
+            Overrides = new short[map16.GetMap16TileCount()];
+            Map16Buffer = map16.Render();
             /*
             TilemapEditorTest t = new TilemapEditorTest();
             t.load(map16);
@@ -296,7 +296,7 @@ namespace NSMBe5
             		palettes[i].beginEdit();
 
                 graphics.beginEdit();
-                map16.beginEdit();
+                map16.BeginEdit();
 
                 ObjFile.beginEdit(this);
                 ObjIndexFile.beginEdit(this);
@@ -310,7 +310,7 @@ namespace NSMBe5
 		        	for(int i = 0; i < palettes.Length; i++)
 		        		palettes[i].endEdit();
                     graphics.endEdit();
-                    map16.endEdit();
+                    map16.EndEdit();
                 }
                 catch (Exception) { }
 
@@ -331,7 +331,7 @@ namespace NSMBe5
         		palettes[i].save();
 
             graphics.save();
-            map16.save();
+            map16.Save();
 
             saveObjects();
             saveTileBehaviors();
@@ -343,7 +343,7 @@ namespace NSMBe5
         		palettes[i].endEdit();
         	
             graphics.endEdit();
-            map16.endEdit();
+            map16.EndEdit();
 
             ObjFile.endEdit(this);
             ObjIndexFile.endEdit(this);

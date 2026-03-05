@@ -232,7 +232,7 @@ namespace NSMBe5
                 return;
             }
 
-            t.render();
+            t.Render();
             new TilemapEditorWindow(t, GFXFile, PalFile, LayoutFile).Show();
         }
 
@@ -405,7 +405,7 @@ namespace NSMBe5
             sfd.Filter = LanguageManager.Get("Filters", "png");
             if (sfd.ShowDialog() != DialogResult.OK) return;
 
-            t.render();
+            t.Render();
             t.buffer.Save(sfd.FileName, System.Drawing.Imaging.ImageFormat.Png);
         }
 

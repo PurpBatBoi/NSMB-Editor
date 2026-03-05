@@ -78,7 +78,7 @@ namespace NSMBe5.TilemapEditor
         {
             _tilemap = tilemap;
             if (_tilemap.buffers == null)
-                _tilemap.render();
+                _tilemap.Render();
 
             tilePicker1.init(_tilemap.buffers, 8);
             tilemapEditorControl1.Picker = tilePicker1;
@@ -383,7 +383,7 @@ namespace NSMBe5.TilemapEditor
 
         private void SaveButtonClickHandler(object sender, EventArgs e)
         {
-            _tilemap.save();
+            _tilemap.Save();
         }
 
         private void GridButtonCheckStateChangedHandler(object sender, EventArgs e)
