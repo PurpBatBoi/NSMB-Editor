@@ -24,11 +24,8 @@ namespace NSMBe5
         {
             InitializeComponent();
 
-            if(IsLevelBG)
-            {
-                bmpoffs_UpDown.Enabled = false;
-                paloffs_UpDown.Enabled = false;
-            }
+            bmpoffs_UpDown.Enabled = false;
+            paloffs_UpDown.Enabled = false;
 
             name_textBox.Text = Name;
             ncgid_UpDown.Value = NCGID;
@@ -47,12 +44,34 @@ namespace NSMBe5
 
         private void Apply_btn_Click(object sender, EventArgs e)
         {
+            int ncgId = (int)ncgid_UpDown.Value;
+            int nclId = (int)nclid_UpDown.Value;
+            int nscId = (int)nscid_UpDown.Value;
+            int firstUsableFileId = ROM.GetOffset(ROM.Data.Number_FileOffset);
+            bool hasZeroId = ncgId == 0 || nclId == 0 || nscId == 0;
+            bool likelySystemFile =
+                ncgId < firstUsableFileId ||
+                nclId < firstUsableFileId ||
+                nscId < firstUsableFileId;
+            bool hasMissingFile = ROM.FS.getFileById(ncgId) == null || ROM.FS.getFileById(nclId) == null || ROM.FS.getFileById(nscId) == null;
+
+            if (hasMissingFile || likelySystemFile || hasZeroId)
+            {
+                DialogResult warnResult = MessageBox.Show(
+                    "One or more selected file IDs are missing or point to system/internal files. This may cause a black screen in-game. Continue anyway?",
+                    "Background ID Warning",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning);
+                if (warnResult != DialogResult.Yes)
+                    return;
+            }
+
             Canceled = false;
 
             bgName = name_textBox.Text;
-            bgNCGID = (int)ncgid_UpDown.Value;
-            bgNCLID = (int)nclid_UpDown.Value;
-            bgNSCID = (int)nscid_UpDown.Value;
+            bgNCGID = ncgId;
+            bgNCLID = nclId;
+            bgNSCID = nscId;
             bgBMPOffs = (int)bmpoffs_UpDown.Value;
             bgPALOffs = (int)paloffs_UpDown.Value;
 

@@ -431,6 +431,12 @@ namespace NSMBe5
         {
             bg = (BackgroundEntry)tilesetListBox.SelectedItem;
 
+            if (bg.mappedTileset)
+            {
+                MessageBox.Show("MappedTilesets entries are marked as not_level_bg and should be left unchanged.", "NSMBe " + Version.GetString(), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             bool IsLevelBG = true;
             if (bg.id > 75 || bg.mappedTileset)
                 IsLevelBG = false;
@@ -440,7 +446,7 @@ namespace NSMBe5
 
             string listName = bg.topLayer ? "Foregrounds" : "Backgrounds";
             if (bg.mappedTileset)
-                listName = "MappedTileset";
+                listName = "MappedTilesets";
 
             if (string.IsNullOrWhiteSpace(newBg.bgName))
             {
@@ -459,16 +465,17 @@ namespace NSMBe5
 
             string NewFullName = string.Format("{0}: {1}", bg.id, newBg.bgName);
             if (!IsLevelBG)
-                NewFullName = string.Format("{0}: {1}@{2}@{3}@{4}@{5}@{6}@not_level_bg", bg.id, newBg.bgName, newBg.bgNCGID, newBg.bgNCLID, newBg.bgNSCID, newBg.bgBMPOffs, newBg.bgPALOffs);
-            else
-            {
-                ROM.SetFileIDFromTable(bg.id, bg.topLayer ? ROM.Data.Table_FG_NCG : ROM.Data.Table_BG_NCG, (ushort)newBg.bgNCGID);
-                ROM.SetFileIDFromTable(bg.id, bg.topLayer ? ROM.Data.Table_FG_NCL : ROM.Data.Table_BG_NCL, (ushort)newBg.bgNCLID);
-                ROM.SetFileIDFromTable(bg.id, bg.topLayer ? ROM.Data.Table_FG_NSC : ROM.Data.Table_BG_NSC, (ushort)newBg.bgNSCID);
-            }
+                NewFullName = string.Format("{0}: {1}@{2}@{3}@{4}@{5}@{6}@not_level_bg", bg.id, newBg.bgName, newBg.bgNCGID, newBg.bgNCLID, newBg.bgNSCID, bg.BitmapOffset, bg.PaletteOffsets);
+
+            // Always update ROM file-id tables: in-game loading uses these, while
+            // @...@not_level_bg metadata is editor-side info for list/offset behavior.
+            ROM.SetFileIDFromTable(bg.id, bg.topLayer ? ROM.Data.Table_FG_NCG : ROM.Data.Table_BG_NCG, (ushort)newBg.bgNCGID);
+            ROM.SetFileIDFromTable(bg.id, bg.topLayer ? ROM.Data.Table_FG_NCL : ROM.Data.Table_BG_NCL, (ushort)newBg.bgNCLID);
+            ROM.SetFileIDFromTable(bg.id, bg.topLayer ? ROM.Data.Table_FG_NSC : ROM.Data.Table_BG_NSC, (ushort)newBg.bgNSCID);
+            ROM.SaveOverlay0();
 
             ROM.UserInfo.setListItem(listName, bg.id, NewFullName, true);
-            tilesetListBox.Items[tilesetListBox.SelectedIndex] = new BackgroundEntry(bg.topLayer, bg.id, NewFullName, false);
+            tilesetListBox.Items[tilesetListBox.SelectedIndex] = new BackgroundEntry(bg.topLayer, bg.id, NewFullName, bg.mappedTileset);
         }
     }
 }
